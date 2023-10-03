@@ -1,0 +1,23 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
+{
+    "name": "remill-workshop",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    // Configure tool-specific properties.
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "llvm-vs-code-extensions.vscode-clangd",
+                "twxs.cmake",
+                "ms-vscode.cmake-tools",
+                "revng.llvm-ir",
+                "xaver.clang-format",
+                "EditorConfig.EditorConfig",
+                "tamasfe.even-better-toml",
+                "ms-vscode.cpptools",
+            ]
+        }
+    }
+}

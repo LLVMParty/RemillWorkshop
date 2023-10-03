@@ -1,0 +1,7 @@
+{
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceDir}/build",
+        "-header-insertion=never"
+    ],
+    "clang-format.executable": "clang-format"
+}

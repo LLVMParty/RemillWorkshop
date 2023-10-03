@@ -1,0 +1,23 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[project]
+name = "remill-workshop"
+
+[variables]
+CMAKE_MODULE_PATH = "${CMAKE_SOURCE_DIR}/cmake"
+GFLAGS_USE_TARGET_NAMESPACE = true
+
+[find-package.Z3]
+[find-package.LLVM-Wrapper]
+[find-package.remill]
+
+[target.hello]
+type = "executable"
+sources = [
+    "src/hello.cpp",
+]
+compile-features = ["cxx_std_17"]
+link-libraries = [
+    "LLVM-Wrapper",
+    "remill",
+    "remill_settings",
+]
