@@ -1,4 +1,7 @@
 # Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[cmake]
+cmkr-include = ["cmake/cmkr.toml"]
+
 [project]
 name = "remill-workshop"
 
@@ -10,14 +13,19 @@ GFLAGS_USE_TARGET_NAMESPACE = true
 [find-package.LLVM-Wrapper]
 [find-package.remill]
 
-[target.hello]
+[template.remill]
 type = "executable"
-sources = [
-    "src/hello.cpp",
-]
 compile-features = ["cxx_std_17"]
 link-libraries = [
     "LLVM-Wrapper",
     "remill",
     "remill_settings",
 ]
+
+[target.hello]
+type = "remill"
+sources = ["src/hello.cpp"]
+
+[target.remill-lift]
+type = "remill"
+sources = ["src/remill-lift.cpp"]

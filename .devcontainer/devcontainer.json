@@ -13,10 +13,9 @@
                 "twxs.cmake",
                 "ms-vscode.cmake-tools",
                 "revng.llvm-ir",
-                "xaver.clang-format",
                 "EditorConfig.EditorConfig",
                 "tamasfe.even-better-toml",
-                "ms-vscode.cpptools",
+                "ms-vscode.cpptools"
             ]
         }
     }

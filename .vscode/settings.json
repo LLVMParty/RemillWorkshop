@@ -3,5 +3,16 @@
         "--compile-commands-dir=${workspaceDir}/build",
         "-header-insertion=never"
     ],
-    "clang-format.executable": "clang-format"
+    "clang-format.executable": "clang-format",
+    "files.exclude": {
+        "**/.cache": true,
+        "**/.clang-format": true,
+        "**/.devcontainer": true,
+        "**/.editorconfig": true,
+        "**/.gitattributes": true,
+        "**/.gitignore": true,
+        "**/.vscode": true,
+        "**/CMakeLists.txt": true,
+    },
+    "editor.formatOnSave": true
 }
