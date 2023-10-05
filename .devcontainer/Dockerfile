@@ -9,4 +9,5 @@ RUN apt update \
         cmake \
         ninja-build \
         gdb \
+        bsdmainutils \
  && apt remove -y gcc gcc-11
