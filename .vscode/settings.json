@@ -13,5 +13,8 @@
         "**/.vscode": true,
         "**/CMakeLists.txt": true,
     },
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[markdown]": {
+        "editor.formatOnSave": false
+    },
 }

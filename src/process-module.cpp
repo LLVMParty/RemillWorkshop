@@ -1,14 +1,6 @@
 #include <cstdlib>
 
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/FormattedStream.h>
-#include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/ToolOutputFile.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
+#include "utility.hpp"
 
 using namespace llvm;
 
@@ -25,8 +17,9 @@ static void ProcessModule(Module &M) {
 }
 
 int main(int argc, char **argv) {
+  // Parse arguments
   if (argc < 3) {
-    puts("Usage: process-module in.bc out.bc");
+    printf("Usage: %s in.bc out.bc\n", std::filesystem::path(argv[0]).filename().c_str());
     return EXIT_FAILURE;
   }
   auto inFile = argv[1];
@@ -34,12 +27,7 @@ int main(int argc, char **argv) {
 
   // Load module
   LLVMContext C;
-  SMDiagnostic Err;
-  auto M = parseIRFile(inFile, Err, C);
-  if (!M) {
-    outs() << "Failed to parse IR: " << Err.getMessage() << "\n";
-    return EXIT_FAILURE;
-  }
+  auto M = LoadModule(C, inFile);
 
   // Process module
   try {
@@ -49,15 +37,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  // Write module
-  std::error_code EC;
-  ToolOutputFile Out(outFile, EC, sys::fs::OF_None);
-  WriteBitcodeToFile(*M, Out.os(), true);
-  if (EC) {
-    outs() << "Failed to write IR: " << EC.message() << "\n";
-    return EXIT_FAILURE;
-  }
-  Out.keep();
+  // Save module
+  SaveModule(M.get(), outFile);
 
   return EXIT_SUCCESS;
 }
