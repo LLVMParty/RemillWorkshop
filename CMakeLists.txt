@@ -99,22 +99,22 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT remill-lift)
 endif()
 
-# Target: process-module
-set(process-module_SOURCES
-	"src/process-module.cpp"
+# Target: bc-tool
+set(bc-tool_SOURCES
+	"src/bc-tool.cpp"
 	cmake.toml
 )
 
-add_executable(process-module)
+add_executable(bc-tool)
 
-target_sources(process-module PRIVATE ${process-module_SOURCES})
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${process-module_SOURCES})
+target_sources(bc-tool PRIVATE ${bc-tool_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bc-tool_SOURCES})
 
-target_compile_features(process-module PRIVATE
+target_compile_features(bc-tool PRIVATE
 	cxx_std_20
 )
 
-target_link_libraries(process-module PRIVATE
+target_link_libraries(bc-tool PRIVATE
 	LLVM-Wrapper
 	remill
 	remill_settings
@@ -122,5 +122,5 @@ target_link_libraries(process-module PRIVATE
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
-	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT process-module)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-tool)
 endif()

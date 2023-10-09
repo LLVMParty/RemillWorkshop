@@ -15,7 +15,8 @@
                 "revng.llvm-ir",
                 "EditorConfig.EditorConfig",
                 "tamasfe.even-better-toml",
-                "ms-vscode.cpptools"
+                "ms-vscode.cpptools",
+                "tintinweb.graphviz-interactive-preview"
             ]
         }
     }

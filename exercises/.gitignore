@@ -2,3 +2,5 @@
 *.bc
 *.bin
 *.o
+*.dot
+*.png

@@ -30,6 +30,6 @@ sources = ["src/hello.cpp"]
 type = "llvm-tool"
 sources = ["src/remill-lift.cpp"]
 
-[target.process-module]
+[target.bc-tool]
 type = "llvm-tool"
-sources = ["src/process-module.cpp"]
+sources = ["src/bc-tool.cpp"]

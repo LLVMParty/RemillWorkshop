@@ -4,7 +4,7 @@ Activate the environment and go into this folder:
 
 ```sh
 source llvm-env
-cd example/2_lifting
+cd exercises/3_lifting
 ```
 
 ## Simple example
@@ -58,3 +58,5 @@ Now lift the function:
 ./build/remill-lift -bytes "48c1ef03488d047f480539050000c3" -arch amd64 -ir_out lift1.bc
 llvm-dis lift1.bc
 ```
+
+TODO: use `opt` directly after `llvm-link` to resolve the helpers
