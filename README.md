@@ -13,30 +13,47 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 
 For more detailed steps, check out the [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial). The instructions after this assume you are running _inside_ the container.
 
+### Windows
+
+Because the host filesystem is mounted inside the container you need to configure Git to not automatically convert line endings:
+
+```sh
+git config --global core.autocrlf false
+```
+
+Additionally it's recommended to configure Docker to use the WSL 2 backend.
+
 ## Building the examples
 
-The container [`Dockerfile`](./.devcontainer/Dockerfile) contains all the tools and extensions necessary to develop LLVM-based tools in C++. To build the examples, use the following commands from VSCode's command palette (Meta+Shift+P):
+To build the examples, use the following commands from VSCode's command palette (Meta+Shift+P):
 
-- CMake: Configure
-- CMake: Build
-- clangd: Restart language server
+- `CMake: Configure`
+- `CMake: Build`
 
 ## Activating the environment
 
-After building, activate the environment from the Terminal:
+Open a New Terminal and activate the environment with the following command:
 
-```bash
+```sh
 source llvm-env
 ```
 
-To verify you should be able to run `llvm-config --prefix`:
-
-```bash
-/cxx-common/install
-```
-
-The `${workspaceFolder}/build` directory will also be added to your `PATH`, so you can easily access your tools from anywhere. To check if the examples built correctly you can run `hello`:
+To verify, run the following command:
 
 ```sh
-remill version: e72a100
+llvm-config --prefix
 ```
+
+Expected output:
+
+> /cxx-common/install
+
+The `${workspaceFolder}/build` directory will also be added to your `PATH`, so you can easily access your tools from anywhere. To verify, run the follow command:
+
+```sh
+hello
+```
+
+Output:
+
+> remill version: e72a100

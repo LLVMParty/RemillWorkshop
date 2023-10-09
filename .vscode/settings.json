@@ -19,4 +19,5 @@
     },
     "cmake.configureOnOpen": false,
     "workbench.startupEditor": "none",
+    "C_Cpp.intelliSenseEngine": "disabled",
 }
