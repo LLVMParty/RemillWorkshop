@@ -4,7 +4,7 @@
 
 This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) file to allow you to quickly get started:
 
-- Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
+- Install/Update [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
 - **Start Docker Desktop**
 - Install [Visual Studio Code](https://code.visualstudio.com)
 - Clone and open this repository
@@ -23,19 +23,16 @@ The container [`Dockerfile`](./.devcontainer/Dockerfile) contains all the tools 
 
 ## Activating the environment
 
-Once you are inside the Dev Container, you can access the installed tools from `/cxx-common/install`. To add them to your `PATH`, run:
+After building, activate the environment from the Terminal:
 
 ```bash
 source llvm-env
 ```
 
-To verify you should be able to run `clang-15 --version`:
+To verify you should be able to run `llvm-config --prefix`:
 
 ```bash
-clang version 15.0.4
-Target: aarch64-unknown-linux-gnu
-Thread model: posix
-InstalledDir: /cxx-common/install/bin
+/cxx-common/install
 ```
 
 The `${workspaceFolder}/build` directory will also be added to your `PATH`, so you can easily access your tools from anywhere. To check if the examples built correctly you can run `hello`:

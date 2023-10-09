@@ -1,6 +1,6 @@
-script_directory="$(readlink -f $(dirname $_))"
+script_directory="$(readlink -f $(dirname ${BASH_SOURCE[0]}))"
 if [ ! -e "$script_directory/llvm-env" ]; then
     echo "Invoke this script with 'source llvm-env'"
-    exit 1
+    return 1
 fi
 export PATH="$script_directory/build:/cxx-common/install/bin:$PATH"
