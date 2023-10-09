@@ -7,7 +7,7 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 - Install/Update [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
 - **Start Docker Desktop**
 - Install [Visual Studio Code](https://code.visualstudio.com)
-- Clone and open this repository
+- Clone and open this repository (**use the HTTPS protocol**)
 - Install the [Dev Containers](vscode:extension/ms-vscode-remote.remote-containers) extension (you should be prompted for recommended extensions)
 - Click the blue 'Reopen in Container' button when prompted (you can also find it in the command palette)
 
@@ -28,7 +28,7 @@ Additionally it's recommended to configure Docker to use the WSL 2 backend.
 To build the examples, use the following commands from VSCode's command palette (Meta+Shift+P):
 
 - `CMake: Configure`
-- `CMake: Build`
+- `CMake: Build` (select the `[Unspecified]` kit when prompted)
 
 ## Activating the environment
 

@@ -19,6 +19,8 @@ link-libraries = ["LLVM-Wrapper", "remill", "remill_settings"]
 [find-package.LLVM-Wrapper]
 [find-package.remill]
 
+# Compile the helpers
+[subdir.helpers]
 
 [target.hello]
 type = "llvm-tool"

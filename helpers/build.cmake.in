@@ -1,0 +1,31 @@
+# To compile the helpers:
+# cmake -P build.cmake
+
+set(HELPER_CLANG_FLAGS "@HELPER_CLANG_FLAGS@")
+set(HELPER_CLANG_EXECUTABLE "@HELPER_CLANG_EXECUTABLE@")
+
+message(STATUS "[@arch@] Directory: ${CMAKE_CURRENT_BINARY_DIR}")
+
+function(compile_helper basename)
+    set(source "${CMAKE_CURRENT_SOURCE_DIR}/${basename}.cpp")
+
+    if(NOT EXISTS "${source}")
+        message(STATUS "[@arch@] Not found: ${basename}.cpp (skipping)")
+        return()
+    endif()
+
+    message(STATUS "[@arch@] Compiling ${basename}.cpp")
+    execute_process(
+        COMMAND "${HELPER_CLANG_EXECUTABLE}" -c "${source}" ${HELPER_CLANG_FLAGS}
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+    execute_process(
+        COMMAND "${HELPER_CLANG_EXECUTABLE}" -S "${source}" ${HELPER_CLANG_FLAGS}
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+endfunction()
+
+compile_helper(RemillHelpers)
+compile_helper(RemillHotpatch)

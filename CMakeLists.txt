@@ -37,6 +37,16 @@ find_package(LLVM-Wrapper REQUIRED)
 
 find_package(remill REQUIRED)
 
+# Subdirectory: helpers
+set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
+if(CMAKE_FOLDER)
+	set(CMAKE_FOLDER "${CMAKE_FOLDER}/helpers")
+else()
+	set(CMAKE_FOLDER helpers)
+endif()
+add_subdirectory(helpers)
+set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
+
 # Target: hello
 set(hello_SOURCES
 	"src/hello.cpp"
