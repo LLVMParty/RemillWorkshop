@@ -17,4 +17,6 @@
     "[markdown]": {
         "editor.formatOnSave": false
     },
+    "cmake.configureOnOpen": false,
+    "workbench.startupEditor": "none",
 }

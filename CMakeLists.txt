@@ -49,7 +49,7 @@ target_sources(hello PRIVATE ${hello_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${hello_SOURCES})
 
 target_compile_features(hello PRIVATE
-	cxx_std_17
+	cxx_std_20
 )
 
 target_link_libraries(hello PRIVATE
@@ -75,7 +75,7 @@ target_sources(remill-lift PRIVATE ${remill-lift_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${remill-lift_SOURCES})
 
 target_compile_features(remill-lift PRIVATE
-	cxx_std_17
+	cxx_std_20
 )
 
 target_link_libraries(remill-lift PRIVATE
@@ -101,7 +101,7 @@ target_sources(process-module PRIVATE ${process-module_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${process-module_SOURCES})
 
 target_compile_features(process-module PRIVATE
-	cxx_std_17
+	cxx_std_20
 )
 
 target_link_libraries(process-module PRIVATE

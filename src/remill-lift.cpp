@@ -74,6 +74,10 @@ DEFINE_uint64(entry_address,
 
 DEFINE_string(bytes, "", "Hex-encoded byte string to lift.");
 
+DEFINE_string(ir_pre_out,
+  "",
+  "Path to the file where the LLVM IR (before optimization) should be saved");
+
 DEFINE_string(ir_out, "", "Path to file where the LLVM IR should be saved.");
 DEFINE_string(bc_out,
   "",
@@ -275,6 +279,13 @@ int main(int argc, char *argv[]) {
   // Lift all discoverable traces starting from `--entry_address` into
   // `module`.
   trace_lifter.Lift(FLAGS_entry_address);
+
+  // Dump the pre-optimization IR
+  if (!FLAGS_ir_pre_out.empty()) {
+    if (!remill::StoreModuleIRToFile(module.get(), FLAGS_ir_pre_out, true)) {
+      LOG(ERROR) << "Could not save LLVM IR to " << FLAGS_ir_pre_out;
+    }
+  }
 
   // Optimize the module, but with a particular focus on only the functions
   // that we actually lifted.

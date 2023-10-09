@@ -4,10 +4,12 @@
 
 This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) file to allow you to quickly get started:
 
-- Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options)) and [Visual Studio Code](https://code.visualstudio.com)
-- Install the `Dev Containers` extension (you should be prompted when opening this folder)
-- Open this repository
-- Click the blue 'Reopen in Container' button when prompted
+- Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
+- **Start Docker Desktop**
+- Install [Visual Studio Code](https://code.visualstudio.com)
+- Clone and open this repository
+- Install the [Dev Containers](vscode:extension/ms-vscode-remote.remote-containers) extension (you should be prompted for recommended extensions)
+- Click the blue 'Reopen in Container' button when prompted (you can also find it in the command palette)
 
 For more detailed steps, check out the [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial). The instructions after this assume you are running _inside_ the container.
 

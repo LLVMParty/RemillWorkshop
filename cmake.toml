@@ -10,14 +10,15 @@ name = "remill-workshop"
 CMAKE_MODULE_PATH = "${CMAKE_SOURCE_DIR}/cmake"
 GFLAGS_USE_TARGET_NAMESPACE = true
 
+[template.llvm-tool]
+type = "executable"
+compile-features = ["cxx_std_20"]
+link-libraries = ["LLVM-Wrapper", "remill", "remill_settings"]
+
 [find-package.Z3]
 [find-package.LLVM-Wrapper]
 [find-package.remill]
 
-[template.llvm-tool]
-type = "executable"
-compile-features = ["cxx_std_17"]
-link-libraries = ["LLVM-Wrapper", "remill", "remill_settings"]
 
 [target.hello]
 type = "llvm-tool"
