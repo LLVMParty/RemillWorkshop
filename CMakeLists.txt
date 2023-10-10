@@ -27,6 +27,7 @@ endif()
 # Variables
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(GFLAGS_USE_TARGET_NAMESPACE ON)
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -gfull")
 
 project(remill-workshop)
 

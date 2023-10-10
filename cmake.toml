@@ -9,6 +9,7 @@ name = "remill-workshop"
 [variables]
 CMAKE_MODULE_PATH = "${CMAKE_SOURCE_DIR}/cmake"
 GFLAGS_USE_TARGET_NAMESPACE = true
+CMAKE_CXX_FLAGS_DEBUG = "-O0 -gfull"
 
 [template.llvm-tool]
 type = "executable"

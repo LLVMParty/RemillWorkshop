@@ -84,8 +84,8 @@ DEFINE_string(bc_out,
   "Path to file where the LLVM bitcode should be "
   "saved.");
 
-DEFINE_string(slice_inputs, "", "Comma-separated list of registers to treat as inputs.");
-DEFINE_string(slice_outputs, "", "Comma-separated list of registers to treat as outputs.");
+DEFINE_string(call_inputs, "", "Comma-separated list of registers to treat as inputs.");
+DEFINE_string(call_output, "", "Return register.");
 
 using Memory = std::map<uint64_t, uint8_t>;
 
@@ -299,7 +299,7 @@ int main(int argc, char *argv[]) {
   arch->PrepareModuleDataLayout(&dest_module);
 
   llvm::Function *entry_trace = nullptr;
-  const auto make_slice = !FLAGS_slice_inputs.empty() || !FLAGS_slice_outputs.empty();
+  const auto make_slice = !FLAGS_call_inputs.empty() || !FLAGS_call_output.empty();
 
   // Move the lifted code into a new module. This module will be much smaller
   // because it won't be bogged down with all of the semantics definitions.
@@ -326,41 +326,32 @@ int main(int argc, char *argv[]) {
     CHECK_NOTNULL(entry_trace);
 
     llvm::SmallVector<llvm::StringRef, 4> input_reg_names;
-    llvm::SmallVector<llvm::StringRef, 4> output_reg_names;
-    llvm::StringRef(FLAGS_slice_inputs).split(input_reg_names, ',', -1, false /* KeepEmpty */);
-    llvm::StringRef(FLAGS_slice_outputs).split(output_reg_names, ',', -1, false /* KeepEmpty */);
+    llvm::StringRef output_reg_name = FLAGS_call_output;
+    llvm::StringRef(FLAGS_call_inputs).split(input_reg_names, ',', -1, false /* KeepEmpty */);
 
-    CHECK(!(input_reg_names.empty() && output_reg_names.empty()))
-      << "Empty lists passed to both --slice_inputs and --slice_outputs";
+    CHECK(!(input_reg_names.empty() && output_reg_name.empty()))
+      << "Empty lists passed to both --call_inputs and --call_output";
 
     // Use the registers to build a function prototype.
     llvm::SmallVector<llvm::Type *, 8> arg_types;
-    arg_types.push_back(mem_ptr_type);
 
     for (auto &reg_name : input_reg_names) {
       const auto reg = arch->RegisterByName(reg_name.str());
       CHECK(reg != nullptr) << "Invalid register name '" << reg_name.str()
-                            << "' used in input slice list '" << FLAGS_slice_inputs << "'";
+                            << "' used in input slice list '" << FLAGS_call_inputs << "'";
 
       arg_types.push_back(reg->type);
     }
 
-    const auto first_output_reg_index = arg_types.size();
-
     // Outputs are "returned" by pointer through arguments.
-    for (auto &reg_name : output_reg_names) {
-      const auto reg = arch->RegisterByName(reg_name.str());
-      CHECK(reg != nullptr) << "Invalid register name '" << reg_name.str()
-                            << "' used in output slice list '" << FLAGS_slice_outputs << "'";
-
-      arg_types.push_back(llvm::PointerType::get(context, 0));
-    }
+    const auto reg = arch->RegisterByName(output_reg_name);
+    CHECK(reg != nullptr) << "Invalid register name '" << output_reg_name.str() << "'";
 
     const auto state_type = arch->StateStructType();
-    const auto func_type = llvm::FunctionType::get(mem_ptr_type, arg_types, false);
+    const auto func_type = llvm::FunctionType::get(reg->type, arg_types, false);
     const auto func = llvm::Function::Create(func_type,
       llvm::GlobalValue::ExternalLinkage,
-      "slice",
+      "call_" + entry_trace->getName(),
       &dest_module);
 
     // Store all of the function arguments (corresponding with specific registers)
@@ -384,7 +375,7 @@ int main(int argc, char *argv[]) {
     auto args_it = func->arg_begin();
     for (auto &reg_name : input_reg_names) {
       const auto reg = arch->RegisterByName(reg_name.str());
-      auto &arg = *++args_it; // Pre-increment, as first arg is memory pointer.
+      auto &arg = *args_it++;
       arg.setName(reg_name);
       CHECK_EQ(arg.getType(), reg->type);
       auto reg_ptr = reg->AddressOf(state_ptr, entry);
@@ -392,7 +383,7 @@ int main(int argc, char *argv[]) {
       ir.CreateStore(&arg, reg_ptr);
     }
 
-    llvm::Value *mem_ptr = &*func->arg_begin();
+    llvm::Value *mem_ptr = llvm::UndefValue::get(mem_ptr_type);
 
     llvm::Value *trace_args[remill::kNumBlockArgs] = {};
     trace_args[remill::kStatePointerArgNum] = state_ptr;
@@ -404,27 +395,10 @@ int main(int argc, char *argv[]) {
 
     mem_ptr = ir.CreateCall(entry_trace, trace_args);
 
-    // Go read all output registers out of the state and store them
-    // into the output parameters.
-    args_it = func->arg_begin();
-    for (size_t i = 0, j = 0; i < func->arg_size(); ++i, ++args_it) {
-      if (i < first_output_reg_index) {
-        continue;
-      }
-
-      const auto &reg_name = output_reg_names[j++];
-      const auto reg = arch->RegisterByName(reg_name.str());
-      auto &arg = *args_it;
-      arg.setName(reg_name + "_output");
-
-      auto reg_ptr = reg->AddressOf(state_ptr, entry);
-      ir.SetInsertPoint(entry);
-      ir.CreateStore(ir.CreateLoad(reg->type, reg_ptr), &arg);
-    }
-
-    // Return the memory pointer, so that all memory accesses are
-    // preserved.
-    ir.CreateRet(mem_ptr);
+    // Read and return the output register
+    const auto out_reg = arch->RegisterByName(output_reg_name);
+    auto out_reg_ptr = out_reg->AddressOf(state_ptr, entry);
+    ir.CreateRet(ir.CreateLoad(out_reg->type, out_reg_ptr));
 
     // We want the stack-allocated `State` to be subject to scalarization
     // and mem2reg, but to "encourage" that, we need to prevent the
@@ -438,7 +412,11 @@ int main(int argc, char *argv[]) {
     guide.slp_vectorize = true;
     guide.loop_vectorize = true;
 
-    CHECK(remill::VerifyModule(&dest_module));
+    auto check = remill::VerifyModuleMsg(&dest_module);
+    if (check) {
+      llvm::errs() << "Verification error: " << *check;
+      CHECK(false);
+    }
     remill::OptimizeBareModule(&dest_module, guide);
   }
 
