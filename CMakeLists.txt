@@ -99,6 +99,32 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT remill-lift)
 endif()
 
+# Target: api-basics
+set(api-basics_SOURCES
+	"src/api-basics.cpp"
+	cmake.toml
+)
+
+add_executable(api-basics)
+
+target_sources(api-basics PRIVATE ${api-basics_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${api-basics_SOURCES})
+
+target_compile_features(api-basics PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(api-basics PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT api-basics)
+endif()
+
 # Target: bc-tool
 set(bc-tool_SOURCES
 	"src/bc-tool.cpp"

@@ -30,6 +30,10 @@ sources = ["src/hello.cpp"]
 type = "llvm-tool"
 sources = ["src/remill-lift.cpp"]
 
+[target.api-basics]
+type = "llvm-tool"
+sources = ["src/api-basics.cpp"]
+
 [target.bc-tool]
 type = "llvm-tool"
 sources = ["src/bc-tool.cpp"]
