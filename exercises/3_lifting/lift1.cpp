@@ -1,6 +1,6 @@
-typedef unsigned long long u64;
+typedef unsigned long long uint64_t;
 
-extern "C" u64 test1_linear_flow(u64 n) {
+extern "C" uint64_t test1_linear_flow(uint64_t n) {
   n >>= 3;
   n *= 3;
   n += 1337;
