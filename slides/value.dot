@@ -1,0 +1,8 @@
+digraph G {
+    rankdir = BT;
+    "llvm::BasicBlock" -> "llvm::Value";
+    "llvm::User" -> "llvm::Value";
+    "llvm::Argument" -> "llvm::Value";
+    "llvm::Constant" -> "llvm::User";
+    "llvm::Instruction" -> "llvm::User";
+}
