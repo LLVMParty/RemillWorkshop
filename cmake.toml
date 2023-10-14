@@ -19,6 +19,7 @@ link-libraries = ["LLVM-Wrapper", "remill", "remill_settings"]
 [find-package.Z3]
 [find-package.LLVM-Wrapper]
 [find-package.remill]
+[find-package.LIEF]
 
 # Compile the helpers
 [subdir.helpers]
@@ -30,6 +31,7 @@ sources = ["src/hello.cpp"]
 [target.remill-lift]
 type = "llvm-tool"
 sources = ["src/remill-lift.cpp"]
+link-libraries = ["LIEF::LIEF"]
 
 [target.api-basics]
 type = "llvm-tool"

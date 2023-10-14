@@ -38,6 +38,8 @@ find_package(LLVM-Wrapper REQUIRED)
 
 find_package(remill REQUIRED)
 
+find_package(LIEF REQUIRED)
+
 # Subdirectory: helpers
 set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
 if(CMAKE_FOLDER)
@@ -93,6 +95,10 @@ target_link_libraries(remill-lift PRIVATE
 	LLVM-Wrapper
 	remill
 	remill_settings
+)
+
+target_link_libraries(remill-lift PRIVATE
+	LIEF::LIEF
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)

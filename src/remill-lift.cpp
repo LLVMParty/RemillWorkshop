@@ -39,6 +39,7 @@
 #include <remill/BC/Version.h>
 #include <remill/OS/OS.h>
 #include <remill/Version/Version.h>
+#include <LIEF/LIEF.hpp>
 
 #include <algorithm>
 #include <cstdint>
@@ -62,17 +63,19 @@ DEFINE_string(arch,
   "`_avx` or `_avx512` appended), aarch64, aarch32");
 
 DEFINE_uint64(address,
-  0,
-  "Address at which we should assume the bytes are"
+  -1,
+  "Address at which we should assume the bytes are "
   "located in virtual memory.");
 
 DEFINE_uint64(entry_address,
-  0,
+  -1,
   "Address of instruction that should be "
   "considered the entrypoint of this code. "
   "Defaults to the value of --address.");
 
 DEFINE_string(bytes, "", "Hex-encoded byte string to lift.");
+
+DEFINE_string(binary, "", "Path to a binary to lift from (ELF/Mach-O/PE).");
 
 DEFINE_string(ir_pre_out,
   "",
@@ -129,13 +132,17 @@ static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
 
 class SimpleTraceManager : public remill::TraceManager {
 public:
+  Memory &memory;
+  LIEF::Binary *binary = nullptr;
+  std::unordered_map<uint64_t, llvm::Function *> traces;
+
   virtual ~SimpleTraceManager(void) = default;
 
-  explicit SimpleTraceManager(Memory &memory_)
-    : memory(memory_) {
+  explicit SimpleTraceManager(Memory &memory_, LIEF::Binary *binary_)
+    : memory(memory_)
+    , binary(binary_) {
   }
 
-protected:
   // Called when we have lifted, i.e. defined the contents, of a new trace.
   // The derived class is expected to do something useful with this.
   void SetLiftedTraceDefinition(uint64_t addr, llvm::Function *lifted_func) override {
@@ -169,18 +176,64 @@ protected:
   // at address `addr` is executable and readable, and updates the byte
   // pointed to by `byte` with the read value.
   bool TryReadExecutableByte(uint64_t addr, uint8_t *byte) override {
-    auto byte_it = memory.find(addr);
-    if (byte_it != memory.end()) {
-      *byte = byte_it->second;
+    if (binary != nullptr) {
+      if (!isExecutableSection(addr)) {
+        return false;
+      }
+      std::vector<uint8_t> content = binary->get_content_from_virtual_address(addr, 1);
+      if (content.empty()) {
+        std::cerr << "Warning: reached end of section?" << std::endl;
+        return false;
+      }
+      if (byte != nullptr) {
+        *byte = content[0];
+      }
       return true;
     } else {
-      return false;
+      auto byte_it = memory.find(addr);
+      if (byte_it != memory.end()) {
+        if (byte != nullptr) {
+          *byte = byte_it->second;
+        }
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 
-public:
-  Memory &memory;
-  std::unordered_map<uint64_t, llvm::Function *> traces;
+private:
+  bool isExecutableSection(const uint64_t addr) const {
+    auto format = binary->format();
+    switch (format) {
+    case LIEF::EXE_FORMATS::FORMAT_ELF: {
+      auto *elf = dynamic_cast<const LIEF::ELF::Binary *>(binary);
+      auto *section = elf->section_from_virtual_address(addr);
+      if (!section)
+        return false;
+      return section->has(LIEF::ELF::ELF_SECTION_FLAGS::SHF_EXECINSTR);
+    } break;
+    case LIEF::EXE_FORMATS::FORMAT_PE: {
+      uint64_t address = addr - binary->imagebase();
+      auto *pe = dynamic_cast<const LIEF::PE::Binary *>(binary);
+      auto *section = pe->section_from_rva(address);
+      if (!section)
+        return false;
+      return section->has_characteristic(LIEF::PE::SECTION_CHARACTERISTICS::IMAGE_SCN_MEM_EXECUTE);
+    } break;
+    case LIEF::EXE_FORMATS::FORMAT_MACHO: {
+      auto *macho = dynamic_cast<const LIEF::MachO::Binary *>(binary);
+      auto *section = macho->section_from_virtual_address(addr);
+      if (!section)
+        return false;
+      return section->has(LIEF::MachO::MACHO_SECTION_FLAGS::S_ATTR_PURE_INSTRUCTIONS);
+    } break;
+    default: {
+      throw std::runtime_error("Unhandled LIEF format");
+    } break;
+    }
+    return false;
+  }
 };
 
 // Looks for calls to a function like `__remill_function_return`, and
@@ -231,24 +284,85 @@ int main(int argc, char *argv[]) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);
 
-  if (FLAGS_bytes.empty()) {
-    std::cerr << "Please specify a sequence of hex bytes to --bytes." << std::endl;
-    return EXIT_FAILURE;
-  }
+  std::unique_ptr<LIEF::Binary> binary;
 
-  if (FLAGS_bytes.size() % 2) {
+  if (!FLAGS_binary.empty()) {
+    // Parse the binary
+    binary = LIEF::Parser::parse(FLAGS_binary);
+    if (!binary) {
+      std::cerr << "Failed to parse binary (unsupported format?)." << std::endl;
+      return EXIT_FAILURE;
+    }
+    // Extract the OS
+    if (FLAGS_os.empty()) {
+      switch (binary->format()) {
+      case LIEF::FORMAT_PE:
+        FLAGS_os = "windows";
+        break;
+      case LIEF::FORMAT_ELF:
+        FLAGS_os = "linux";
+        break;
+      case LIEF::FORMAT_MACHO:
+        FLAGS_os = "macos";
+        break;
+      default:
+        std::cerr << "Could not determine OS from binary" << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+    // Extract the architecture
+    if (FLAGS_arch.empty()) {
+      if (binary->header().endianness() == LIEF::ENDIANNESS::ENDIAN_BIG) {
+        std::cerr << "Big endian not supported" << std::endl;
+        return EXIT_FAILURE;
+      }
+      switch (binary->header().architecture()) {
+      case LIEF::ARCH_X86:
+        if (binary->header().is_64()) {
+          FLAGS_arch = "amd64";
+        } else {
+          FLAGS_arch = "x86";
+        }
+        break;
+      case LIEF::ARCH_ARM:
+        FLAGS_arch = "aarch32";
+        break;
+      case LIEF::ARCH_ARM64:
+        FLAGS_arch = "aarch64";
+        break;
+      default:
+        std::cerr << "Unsupported architecture: " << binary->header().architecture() << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+    // Entry point
+    if (FLAGS_address == (uint64_t)-1) {
+      FLAGS_address = binary->entrypoint();
+      std::cerr << "Address not specified, defaulting to entry point: 0x" << std::hex
+                << FLAGS_address << std::endl;
+    }
+  } else if (FLAGS_bytes.empty()) {
+    std::cerr << "Please specify a sequence of hex bytes to -bytes." << std::endl;
+    return EXIT_FAILURE;
+  } else if (FLAGS_bytes.size() % 2) {
     std::cerr << "Please specify an even number of nibbles to --bytes." << std::endl;
     return EXIT_FAILURE;
   }
 
-  if (!FLAGS_entry_address) {
+  if (FLAGS_address == (uint64_t)-1) {
+    FLAGS_address = 0;
+  }
+
+  if (FLAGS_entry_address == (uint64_t)-1) {
     FLAGS_entry_address = FLAGS_address;
   }
 
   // Make sure `--address` and `--entry_address` are in-bounds for the target
   // architecture's address size.
   llvm::LLVMContext context;
-  auto arch = remill::Arch::Get(context, FLAGS_os, FLAGS_arch);
+  auto arch = remill::Arch::Get(context,
+    FLAGS_os,
+    FLAGS_arch); // TODO: what happens with invalid arguments?
   const uint64_t addr_mask = ~0ULL >> (64UL - arch->address_size);
   if (FLAGS_address != (FLAGS_address & addr_mask)) {
     std::cerr << "Value " << std::hex << FLAGS_address
@@ -267,9 +381,12 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<llvm::Module> module(remill::LoadArchSemantics(arch.get()));
 
   const auto mem_ptr_type = arch->MemoryPointerType();
-
   Memory memory = UnhexlifyInputBytes(addr_mask);
-  SimpleTraceManager manager(memory);
+  SimpleTraceManager manager(memory, binary.get());
+  if (!manager.TryReadExecutableByte(FLAGS_entry_address, nullptr)) {
+    std::cerr << "No executable code at address 0x" << std::hex << FLAGS_entry_address << std::endl;
+    return EXIT_FAILURE;
+  }
   remill::IntrinsicTable intrinsics(module.get());
 
   auto inst_lifter = arch->DefaultLifter(intrinsics);
