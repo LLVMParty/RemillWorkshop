@@ -34,5 +34,6 @@
 - Docker Desktop needs to be updated
 - Windows: git core.autocrlf issues
 - Stress to clone using https
-- Mac: Permission issues in `~/.docker/buildx/current` (chown fernando:staff)
+- Mac: Permission issues in `~/.docker/buildx/current` (`chown $USER:staff`)
 - Codespaces will most likely be a much better idea for a public workshop
+- The LLVM IR extension is not installing/working properly

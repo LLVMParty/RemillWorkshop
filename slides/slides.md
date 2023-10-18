@@ -19,12 +19,14 @@ _Duncan Ogilvie_
 
 # Setup: [remill.ogilvie.pl](https://remill.ogilvie.pl)
 
-<br><br>
+<br>
 
-- Install & Start Docker Desktop
-- Install Visual Studio Code
-- Clone and open the repository
-- Click 'Reopen in Container'
+1. Login to your GitHub account
+2. Fork this repository
+3. Click the green `<> Code` button
+4. Select `Codespaces`
+5. Click `Create codespace on master`
+6. Wait a few minutes while the image is loading ☕
 
 ---
 
@@ -110,7 +112,7 @@ _Instructions_: [`exercises/1_llvmir/README.md`](../exercises/1_llvmir/README.md
 
 <br><br>
 
-Show: `src/process-module.cpp`
+Show: `src/bc-tool.cpp`
 
 ---
 
@@ -131,6 +133,14 @@ Show: `src/process-module.cpp`
 <br>
 
 ![height:340px center](value.png)
+
+---
+
+# LLVM API Walkthrough
+
+<br><br>
+
+Show: `src/api-basics.cpp`
 
 ---
 
