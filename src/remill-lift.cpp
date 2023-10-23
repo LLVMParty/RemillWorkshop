@@ -90,6 +90,8 @@ DEFINE_string(bc_out,
 DEFINE_string(call_inputs, "", "Comma-separated list of registers to treat as inputs.");
 DEFINE_string(call_output, "", "Return register.");
 
+DEFINE_bool(globalregs, false, "Whether registers are converted to global variables.");
+
 using Memory = std::map<uint64_t, uint8_t>;
 
 // Unhexlify the data passed to `--bytes`, and fill in `memory` with each
@@ -436,6 +438,36 @@ int main(int argc, char *argv[]) {
       lifted_entry.second->addFnAttr(llvm::Attribute::InlineHint);
       lifted_entry.second->addFnAttr(llvm::Attribute::AlwaysInline);
     }
+  }
+
+  if (FLAGS_globalregs) {
+    entry_trace->print(llvm::errs(), nullptr, true, true);
+    auto state_ptr = entry_trace->getArg(0);
+    for (auto &basicBlock : *entry_trace) {
+      for (auto &instruction : basicBlock) {
+        if (auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(&instruction)) {
+          auto base = gep->getOperand(0);
+          if (base == state_ptr) {
+            llvm::errs() << "register? " << *gep << "\n";
+            arch->ForEachRegister([](const remill::Register *reg) {
+              std::string s;
+              llvm::raw_string_ostream rso(s);
+              for (const auto &index : reg->gep_index_list) {
+                rso << *index << " ";
+              }
+              llvm::errs() << "  " << reg->name << ":" << s << "\n";
+            });
+          } else {
+            llvm::errs() << "unrelated? " << *gep << "\n  " << *base << "\n";
+          }
+        }
+      }
+    }
+    // llvm::errs() << "entry_trace:\n" << entry_trace << "\n";
+    /*arch->ForEachRegister([](const remill::Register *reg) {
+      reg->gep_offset;
+      reg->gep_type_at_offset;
+    });*/
   }
 
   // We have a prototype, so go create a function that will call our entrypoint.
