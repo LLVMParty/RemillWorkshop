@@ -1,10 +1,6 @@
 ## Slides
 
-- https://llvm.org/docs/GetElementPtr.html
-- show GEP before/after optimizations
-- better phi example
-- llvm: risc
-- remember to use api-basics.cpp during the presentation
+- [Opaque Pointers](https://llvm.org/docs/OpaquePointers.html)
 
 ## LLVM Exercises
 
@@ -16,7 +12,7 @@
 
 ## API Exercises
 
-- StringRef/Twine -> std::string
+- TODO: StringRef/Twine -> std::string
 - Write some tools to print statistics
 - Graphviz
 - TODO: Verify the module?

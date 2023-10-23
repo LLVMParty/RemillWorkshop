@@ -60,3 +60,5 @@ digraph G {
 ```
 
 You can preview `output.dot` in VSCode, or run `dot -Tpng output.dot` (after `apt install graphviz`).
+
+Bonus: add more features and try replicating `opt -dot-cfg my.bc`

@@ -17,6 +17,8 @@ _Duncan Ogilvie_
 
 ---
 
+<!-- paginate: true -->
+
 # Setup: [remill.ogilvie.pl](https://remill.ogilvie.pl)
 
 <br>
@@ -40,7 +42,7 @@ _Duncan Ogilvie_
 
 # Outline
 
-- LLVM Theory
+- LLVM IR Theory
 - LLVM Command Line
 - LLVM C++ API
 - Remill Theory
@@ -48,47 +50,291 @@ _Duncan Ogilvie_
 
 ---
 
-# What is LLVM?
+# What is LLVM IR?
 
-- Low Level Virtual Machine
-- Meant for compiler development
-- LLVM IR: cross-platform representation
-  - Loops
-  - Switch tables
-  - Functions
-- Reusable optimizations
+- **L**ow **L**evel **V**irtual **M**achine ([paper](https://llvm.org/pubs/2002-08-09-LLVMCompilationStrategy.pdf))
+  - Authors: Chris Lattner, Vikram Adve (2002)
+  - Meant for compiler development
+- **I**ntermediate **R**epresentation (IR)
+  - Platform agnostic (mostly)
+  - Functions, control flow, etc.
+  - **R**educed **I**nstruction **S**et **C**omputer (RISC)
+  - **S**ingle **S**tatic **A**ssignment (SSA)
+- Reusable optimization/code generation pipeline
 
 ---
 
-# LLVM IR Module
+# LLVM IR: Module
 
-- Functions
-- Basic Blocks
-  - Instructions
 - Globals
+- Functions
+  - Basic Blocks
+    - Instructions ([reference](https://llvm.org/docs/LangRef.html))
 - Metadata
 
 ---
 
-# LLVM IR Concepts
+# LLVM IR: Hello World
 
-- Identifiers: `@global`/`%local`
+**C**:
+
+```c
+int hello(int x) {
+  return x + 42;
+}
+```
+
+**LLVM IR**:
+
+```llvm
+define i32 @hello(i32 %0) {
+1:
+    %2 = add i32 %0, 42
+    ret i32 %2
+}
+```
+
+- Identifiers: `@global`, `%local`
+- No signed/unsigned number types
+- [Implicit numbering](https://godbolt.org/z/c3hhM4Ees) vs [explicit naming](https://godbolt.org/z/9eT4Pxo8h) of _values_
+
+---
+
+# LLVM IR: Clang
+
+[**hello.c**](https://godbolt.org/z/bcG3frbMW):
+
+```llvm
+define dso_local i32 @hello(i32 noundef %0) #0 {
+  %2 = alloca i32, align 4
+  store i32 %0, ptr %2, align 4
+  %3 = load i32, ptr %2, align 4
+  %4 = add i32 %3, 42
+  ret i32 %4
+}
+
+attributes #0 = { noinline nounwind optnone uwtable ... }
+```
+
+- `dso_local`: [Runtime Preemption Specifier](https://llvm.org/docs/LangRef.html#runtime-preemption-specifiers) (always emitted by Clang)
+- `noundef`: [Parameter attribute](https://llvm.org/docs/LangRef.html#parameter-attributes) to indicate the value is defined
+- `attributes`: [Group](https://llvm.org/docs/LangRef.html#attribute-groups) of [function attributes](https://llvm.org/docs/LangRef.html#function-attributes)
+
+---
+
+# LLVM IR: SSA
+
+- Local _values_ are defined, not assigned
+  - _Variable_ is a misnomer
+- You cannot define the same value twice
+- Does not apply to memory
+  - The `load` and `store` instructions operate on `ptr` values
+- Phi nodes are used as merge points
+
+---
+
+<!-- Reduce the size of the code to fit the slide -->
+<style scoped>
+pre {
+  font-size: 0.7em;
+}
+</style>
+
+# LLVM IR: Control Flow
+
+[`cfg_alloca.ll`](https://godbolt.org/z/cGzeefh7K):
+
+```c
+uint32_t cfg(uint32_t x) {
+  if (x > 10) return 123;
+  else        return 321;
+}
+```
+
+```llvm
+define i32 @cfg(i32 %x) {
+  %temp = alloca i32, align 4
+  %cond = icmp ugt i32 %x, 10
+  br i1 %cond, label %bb.if, label %bb.else
+bb.if:
+  store i32 123, ptr %temp, align 4
+  br label %bb.end
+bb.else:
+  store i32 321, ptr %temp, align 4
+  br label %bb.end
+bb.end:
+  %result = load i32, ptr %temp, align 4
+  ret i32 %result
+}
+```
+
+---
+
+# LLVM IR: `phi`
+
+[`cfg_phi.ll`](https://godbolt.org/z/njxfeYTan):
+
+```llvm
+define i32 @cfg(i32 %x) {
+  %cond = icmp ugt i32 %x, 10
+  br i1 %cond, label %bb.if, label %bb.else
+bb.if:
+  %result_if = add i32 0, 123
+  br label %bb.end
+bb.else:
+  %result_else = add i32 0, 321
+  br label %bb.end
+bb.end:
+  %result = phi i32 [%result_if, %bb.if], [%result_else, %bb.else]
+  ret i32 %result
+}
+```
+
+---
+
+# LLVM IR: `select`
+
+[`cfg_select.ll`](https://godbolt.org/z/haef8ojsa):
+
+```llvm
+define i32 @cfg(i32 %x) {
+  %cond = icmp ugt i32 %x, 10
+  %result = select i1 %cond, i32 123, i32 321
+  ret i32 %result
+}
+```
+
+---
+
+# LLVM IR: `getelementptr` (array)
+
+**C**:
+
+```c
+uint32_t arrayExample(uint32_t* arr) {
+    return arr[5];
+}
+```
+
+**LLVM IR**:
+
+```llvm
+define i32 @arrayExample(ptr %arr) #0 {
+  %ptr_idx_2 = getelementptr inbounds i32, ptr %arr, i64 5
+  %result = load i32, ptr %ptr_idx_2
+  ret i32 %result
+}
+```
+
+---
+
+# LLVM IR: `getelementptr` (member)
+
+**C**:
+
+```c
+typedef struct { uint64_t a[2]; uint32_t b; uint32_t c[5]; } MyStruct;
+
+uint32_t structExample1(MyStruct* s) {
+    return s->b; // s[0].b
+}
+```
+
+**LLVM IR**:
+
+```llvm
+%struct.MyStruct = type { [2 x i64], i32, [5 x i32] }
+
+define i32 @structExample1(ptr %s) #0 {
+  %ptr_b = getelementptr %struct.MyStruct, ptr %s, i32 0, i32 1
+  %result = load i32, ptr %ptr_b
+  ret i32 %result
+}
+```
+
+---
+
+# LLVM IR: `getelementptr` (member array)
+
+**C**:
+
+```c
+typedef struct { uint64_t a[2]; uint32_t b; uint32_t c[5]; } MyStruct;
+
+uint32_t structExample2(MyStruct* s) {
+    return s->c[3];
+}
+```
+
+**LLVM IR**:
+
+```llvm
+%struct.MyStruct = type { [2 x i64], i32, [5 x i32] }
+
+define i32 @structExample2(ptr %s) #0 {
+  %ptr_c = getelementptr %struct.MyStruct, ptr %s, i32 0, i32 2
+  %ptr_c_3 = getelementptr [5 x i32], ptr %ptr_c, i32 0, i32 3
+  %result = load i32, ptr %ptr_c_3
+  ret i32 %result
+}
+```
+
+---
+
+# LLVM IR: `getelementptr` (optimization)
+
+```llvm
+%struct.MyStruct = type { [2 x i64], i32, [5 x i32] }
+
+define i32 @structExample2(ptr %s) #0 {
+  %ptr_c = getelementptr %struct.MyStruct, ptr %s, i32 0, i32 2
+  %ptr_c_3 = getelementptr [5 x i32], ptr %ptr_c, i32 0, i32 3
+  %result = load i32, ptr %ptr_c_3
+  ret i32 %result
+}
+
+define i32 @structExample2_opt(ptr %s) #0 {
+  %ptr_c_3 = getelementptr %struct.MyStruct, ptr %s, i32 0, i32 2, i32 3
+  %result = load i32, ptr %ptr_c_3
+  ret i32 %result
+}
+```
+
+---
+
+# LLVM IR: `getelementptr` (flattening)
+
+```llvm
+%struct.MyStruct = type { [2 x i64], i32, [5 x i32] }
+
+define i64 @structExample3(ptr %s) #0 {
+  %ptr_a = getelementptr %struct.MyStruct, ptr %s, i32 0, i32 0
+  %ptr_a_1 = getelementptr [2 x i64], ptr %ptr_a, i32 0, i32 1
+  %result = load i64, ptr %ptr_a_1
+  ret i64 %result
+}
+
+define i64 @structExample3_opt(ptr %s) #0 {
+  %ptr_a_1 = getelementptr [2 x i64], ptr %s, i64 0, i64 1
+  %result = load i64, ptr %ptr_a_1
+  ret i64 %result
+}
+```
+
+- [LLVM IR Godbolt](https://godbolt.org/z/4KvzT9has)
+- [C Godbolt](https://godbolt.org/z/1YKqE4Wsd) (play with the optimization settings)
+
+---
+
+# LLVM IR: Verification
+
 - [Well-formedness](https://www.quora.com/How-do-Terminators-work-in-the-LLVM-IR)
   - Type checking
   - Terminator instructions
   - Entry no predecessor
   - CFG integrity
-  - phi/alloca at the start
+  - `phi` / `alloca` at the start
 - `llvm::verifyModule` + `LLVM_ENABLE_ASSERTIONS`
-
----
-
-# Other Concepts
-
-- [LLVM Language Reference](https://llvm.org/docs/LangRef.html)
-- [Opaque Pointers](https://llvm.org/docs/OpaquePointers.html)
-- [`getelementptr`](https://llvm.org/docs/LangRef.html#getelementptr-instruction)
-  - [Godbolt Example](https://godbolt.org/z/sPrKTEr7M)
 
 ---
 
@@ -108,7 +354,7 @@ _Instructions_: [`exercises/1_llvmir/README.md`](../exercises/1_llvmir/README.md
 
 ---
 
-# LLVM Hello World
+# LLVM C++ Hello World
 
 <br><br>
 
