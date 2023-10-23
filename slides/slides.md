@@ -42,11 +42,9 @@ _Duncan Ogilvie_
 
 # Outline
 
-- LLVM IR Theory
-- LLVM Command Line
-- LLVM C++ API
-- Remill Theory
-- Remill Command Line
+- LLVM IR
+- LLVM API
+- Remill
 
 ---
 
@@ -117,7 +115,7 @@ attributes #0 = { noinline nounwind optnone uwtable ... }
 ```
 
 - `dso_local`: [Runtime Preemption Specifier](https://llvm.org/docs/LangRef.html#runtime-preemption-specifiers) (always emitted by Clang)
-- `noundef`: [Parameter attribute](https://llvm.org/docs/LangRef.html#parameter-attributes) to indicate the value is defined
+- `noundef`: [Parameter attribute](https://llvm.org/docs/LangRef.html#parameter-attributes) to indicate the value is always defined
 - `attributes`: [Group](https://llvm.org/docs/LangRef.html#attribute-groups) of [function attributes](https://llvm.org/docs/LangRef.html#function-attributes)
 
 ---
@@ -206,6 +204,18 @@ define i32 @cfg(i32 %x) {
 
 ---
 
+# LLVM IR: [`getelementptr`](https://llvm.org/docs/GetElementPtr.html)
+
+- Pointer arithmetic
+  - Arrays
+  - Structs
+- **Does not** read memory
+- [Opaque Pointers](https://llvm.org/docs/OpaquePointers.html)
+  - Default since LLVM 15
+  - Previously pointers had a type
+
+---
+
 # LLVM IR: `getelementptr` (array)
 
 **C**:
@@ -225,6 +235,8 @@ define i32 @arrayExample(ptr %arr) #0 {
   ret i32 %result
 }
 ```
+
+- `ptr_idx_2 = arr + 5 * sizeof(i32)`
 
 ---
 
@@ -251,6 +263,8 @@ define i32 @structExample1(ptr %s) #0 {
   ret i32 %result
 }
 ```
+
+- `ptr_b = s + 0 * sizeof(MyStruct) + offsetof(MyStruct, b)`
 
 ---
 
@@ -315,6 +329,7 @@ define i64 @structExample3(ptr %s) #0 {
 }
 
 define i64 @structExample3_opt(ptr %s) #0 {
+  ; No reference to MyStruct at all anymore
   %ptr_a_1 = getelementptr [2 x i64], ptr %s, i64 0, i64 1
   %result = load i64, ptr %ptr_a_1
   ret i64 %result
@@ -323,6 +338,22 @@ define i64 @structExample3_opt(ptr %s) #0 {
 
 - [LLVM IR Godbolt](https://godbolt.org/z/4KvzT9has)
 - [C Godbolt](https://godbolt.org/z/1YKqE4Wsd) (play with the optimization settings)
+
+---
+
+# LLVM IR: Exercises
+
+<br>
+
+_Instructions_: `exercises/1_llvmir/README.md`
+
+---
+
+# LLVM API
+
+- 😭 Difficult to navigate
+- ✅ Annoying to set up
+- 🤖 Use Google/ChatGPT liberally
 
 ---
 
@@ -338,31 +369,15 @@ define i64 @structExample3_opt(ptr %s) #0 {
 
 ---
 
-# Time for a hands-on session!
+# LLVM API: Basics
 
-<br><br>
+<br>
 
-_Instructions_: [`exercises/1_llvmir/README.md`](../exercises/1_llvmir/README.md)
-
----
-
-# LLVM C++ API
-
-- 😭 Difficult to navigate
-- ✅ Annoying to set up
-- 🤖 Use Google/ChatGPT liberally
+Walkthrough: `src/api-basics.cpp`
 
 ---
 
-# LLVM C++ Hello World
-
-<br><br>
-
-Show: `src/bc-tool.cpp`
-
----
-
-# LLVM Memory Model
+# LLVM API: Memory Model
 
 <style scoped>
   img[alt~='center'] {
@@ -382,32 +397,33 @@ Show: `src/bc-tool.cpp`
 
 ---
 
-# LLVM API Walkthrough
+# LLVM API: Tool template
 
-<br><br>
+<br>
 
-Show: `src/api-basics.cpp`
+Show: `src/bc-tool.cpp`
 
 ---
 
-# Time for a hands-on session!
+# LLVM API: Exercises
 
-<br><br>
+<br>
 
-_Instructions_: [`exercises/2_api/README.md`](../exercises/2_api/README.md)
+_Instructions_: `exercises/2_api/README.md`
 
 ---
 
 # What is Remill?
 
-- Trail of Bits
-- 'Lifts' native instructions to LLVM IR
+- Authors: Trail of Bits (2015)
+- _Lifts_ native instructions to LLVM IR
   - Applications: binary analysis/instrumentation/emulation
+  - Architectures: ARM, X86, PPC, SPARC, _Sleigh_
 - Mild abuse of the IR, requires some tricks
 
 ---
 
-# Remill Insights
+# Remill: Concepts
 
 - Semantics in C++
   - Easier to maintain
@@ -419,7 +435,7 @@ _Instructions_: [`exercises/2_api/README.md`](../exercises/2_api/README.md)
 
 ---
 
-# Instruction Semantics
+# Remill: Instruction Semantics
 
 ```cpp
 template <typename D, typename S>
@@ -437,7 +453,7 @@ DEF_ISEL(MOV_GPRv_MEMv_32) = MOV<R32W, M32>;
 
 ---
 
-# Lifting Basic Blocks
+# Remill: Lifting Basic Blocks
 
 Basic Block Definition:
 
@@ -453,7 +469,7 @@ Memory *__remill_basic_block(State &state, Ptr block_addr, Memory *memory);
 
 ---
 
-# High level example
+# Remill: High level example
 
 <br>
 
@@ -471,11 +487,11 @@ Memory *__remill_basic_block(State &state, Ptr block_addr, Memory *memory) {
 
 ---
 
-# Time for a hands-on session!
+# Remill: Exercises
 
-<br><br>
+<br>
 
-_Instructions_: [`exercises/3_lifting/README.md`](../exercises/3_lifting/README.md)
+_Instructions_: `exercises/3_lifting/README.md`
 
 ---
 

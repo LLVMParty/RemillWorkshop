@@ -1,7 +1,3 @@
-## Slides
-
-- [Opaque Pointers](https://llvm.org/docs/OpaquePointers.html)
-
 ## LLVM Exercises
 
 - Activate the environment per default
@@ -12,10 +8,8 @@
 
 ## API Exercises
 
-- TODO: StringRef/Twine -> std::string
 - Write some tools to print statistics
 - Graphviz
-- TODO: Verify the module?
 
 ## Remill Exercises
 
