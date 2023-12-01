@@ -230,7 +230,7 @@ uint32_t arrayExample(uint32_t* arr) {
 
 ```llvm
 define i32 @arrayExample(ptr %arr) #0 {
-  %ptr_idx_2 = getelementptr inbounds i32, ptr %arr, i64 5
+  %ptr_idx_2 = getelementptr i32, ptr %arr, i64 5
   %result = load i32, ptr %ptr_idx_2
   ret i32 %result
 }
