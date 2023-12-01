@@ -28,7 +28,7 @@ For more detailed steps, check out the [Dev Containers tutorial](https://code.vi
 
 #### Windows
 
-Because the host filesystem is mounted inside the container you need to configure Git to not automatically convert line endings:
+Because the host filesystem is mounted inside the container you _may_ need to configure Git to not automatically convert line endings:
 
 ```sh
 git config --global core.autocrlf false

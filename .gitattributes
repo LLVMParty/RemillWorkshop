@@ -1,3 +1,5 @@
+# Disable core.autocrlf (https://stackoverflow.com/a/52996849/1806760)
+* -text
 # cmkr
 /**/CMakeLists.txt linguist-generated
 /**/cmkr.cmake linguist-vendored
