@@ -4,7 +4,7 @@
 
 This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) file to allow you to quickly get started. Below are two methods of setting up the environment. **Using Codespaces is recommended**.
 
-### GitHub Codespaces (easy)
+### 1) GitHub Codespaces (easy)
 
 1. Login to your GitHub account
 2. Fork this repository
@@ -15,6 +15,10 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 
 ![Guide on creating a codespace](.devcontainer/codespace.png)
 
+**Note**: Remember to shut down your codespace [here](https://github.com/settings/codespaces) when you're finished.
+
+<sub>_Alternatively you can set things up locally with Docker Desktop_ (**not recommended**):</sub>
+<details>
 ### Docker Desktop (tricky)
 
 - Install/Update [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
@@ -35,15 +39,16 @@ git config --global core.autocrlf false
 ```
 
 Additionally it's recommended to configure Docker to use the WSL 2 backend.
+</details>
 
-## Building the examples
+## 2) Building the examples
 
 To build the examples, use the following commands from VSCode's command palette (Meta+Shift+P):
 
 - `CMake: Configure`
 - `CMake: Build` (select the `[Unspecified]` kit when prompted)
 
-## Activating the environment
+## 3) Activating the environment
 
 Open a New Terminal and activate the environment with the following command:
 
