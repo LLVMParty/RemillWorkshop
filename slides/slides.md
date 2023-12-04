@@ -230,13 +230,13 @@ uint32_t arrayExample(uint32_t* arr) {
 
 ```llvm
 define i32 @arrayExample(ptr %arr) #0 {
-  %ptr_idx_2 = getelementptr i32, ptr %arr, i64 5
-  %result = load i32, ptr %ptr_idx_2
+  %ptr_idx_5 = getelementptr i32, ptr %arr, i64 5
+  %result = load i32, ptr %ptr_idx_5
   ret i32 %result
 }
 ```
 
-- `ptr_idx_2 = arr + 5 * sizeof(i32)`
+- `ptr_idx_5 = (uintptr_t)arr + 5 * sizeof(i32)`
 
 ---
 
@@ -264,7 +264,7 @@ define i32 @structExample1(ptr %s) #0 {
 }
 ```
 
-- `ptr_b = s + 0 * sizeof(MyStruct) + offsetof(MyStruct, b)`
+- `ptr_b = (uintptr_t)s + 0 * sizeof(MyStruct) + offsetof(MyStruct, b)`
 
 ---
 
@@ -292,6 +292,8 @@ define i32 @structExample2(ptr %s) #0 {
   ret i32 %result
 }
 ```
+
+<!-- Note: here it's also possible to collapse the [5 x i32] into i32 -->
 
 ---
 
@@ -451,6 +453,8 @@ DEF_ISEL(MOV_GPRv_MEMv_32) = MOV<R32W, M32>;
 
 🧙🏻‍♂️🪄✨
 
+<!-- How it looks internally, vs other projects it's another abstraction layer -->
+
 ---
 
 # Remill: Lifting Basic Blocks
@@ -484,6 +488,27 @@ Memory *__remill_basic_block(State &state, Ptr block_addr, Memory *memory) {
     return __remill_function_return(state, state.rip, memory);
 }
 ```
+
+<!-- Pseudo-code, decompiled from IR -->
+
+---
+
+# Remill: Helpers
+
+```cpp
+Memory *__remill_write_memory_8(Memory *m, addr_t a, uint8_t v);
+Memory *__remill_write_memory_16(Memory *m, addr_t a, uint16_t v);
+Memory *__remill_write_memory_32(Memory *m, addr_t a, uint32_t v);
+Memory *__remill_write_memory_64(Memory *m, addr_t a, uint64_t v);
+```
+
+<br>
+
+- Abstraction to represent interaction with the host CPU (memory, calls, indirect branches, syscalls, flag computations)
+- Implementation varies depending on the purpose (emulation, symbolic execution, decompilation)
+- Makes the lifted IR difficult to work with for humans (extremely verbose)
+
+<!-- During the exercises we will see how to 'massage' the IR to become more readable for us -->
 
 ---
 

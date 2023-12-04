@@ -31,7 +31,13 @@ Now lift it to bitcode:
 remill-lift -bytes "4889f8c3" -address 0x1000 -arch amd64 -ir_pre_out lift0-pre.ll -ir_out lift0.ll
 ```
 
-Look at `lift0.ll` and use the `bc-demangle` tool you developed to read the `sub_1000` function.
+First open `lift0-pre.ll` and do the following exercises:
+- Find the LLVM IR function with the semantics of our lifted bytes.
+- Find the semantics of the `ret` instruction (use the `bc-demangle` tool to make it easier to read).
+
+Now look at the optimized `lift0.ll` and do these exercises:
+- What IR instruction stores the result in `rax`?
+- What IR instruction reads the return address (`[rsp]`)?
 
 ## Recovering the calling convention
 
@@ -43,13 +49,12 @@ cp ../../build/helpers/x86_64/RemillHelpers.ll ./helpers.ll
 
 Then link the helpers and optimize:
 
-
 ```sh
 llvm-link lift0.ll helpers.ll -o lift0-linked.ll -S
 opt "-passes=default<O3>" lift0-linked.ll -o lift0-recovered.ll -S
 ```
 
-_Note_: You can completely customize the passes here (try the `strip` pass to clean things up).
+_Note_: You can completely customize the passes here (try the `strip` pass to clean things up). See [this Godbolt](https://godbolt.org/z/q9hPPehz3) for an example.
 
 ## More complex example
 
@@ -95,4 +100,10 @@ llvm-link lift1.ll helpers.ll -o lift1-linked.ll -S
 opt "-passes=default<O3>,strip" lift1-linked.ll -o lift1-recovered.ll -S
 ```
 
-Exercise: reconstruct the function in lift3.cpp
+Exercises:
+- Compile `lift3.cpp` and reconstruct the `test3_complex_cfg` function.
+- What happens if any stack slots are used for local variables?
+
+## Recovering a function from a binary
+
+_Exercise_: look at the `remill-lift.cpp` to figure out how to use the `-binary` argument and lift the function directly from the binary (instead of extracting the `-bytes` manually).
