@@ -106,4 +106,11 @@ Exercises:
 
 ## Recovering a function from a binary
 
-_Exercise_: look at the `remill-lift.cpp` to figure out how to use the `-binary` argument and lift the function directly from the binary (instead of extracting the `-bytes` manually).
+Compile `lift3.cpp` to an ELF file:
+
+```sh
+clang-15 -O3 lift3.cpp -o lift3.elf
+llvm-objdump --disassemble-symbols=test3_complex_cfg lift3.elf
+```
+
+_Exercise_: look at the `remill-lift.cpp` to figure out how to use the `-binary` argument and lift the function from `lift3.elf` directly.
