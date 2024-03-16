@@ -25,6 +25,24 @@
     ],
     "clang-format.executable": "clang-format",
     "cmake.configureOnOpen": false,
-    "cmake.options.statusBarVisibility": "compact",
-    "cmake.useCMakePresets": "always"
+    "cmake.useCMakePresets": "always",
+    "cmake.showOptionsMovedNotification": false,
+    "cmake.options.statusBarVisibility": "hidden",
+    "cmake.options.advanced": {
+        "build": {
+            "statusBarVisibility": "visible"
+        },
+        "launch": {
+            "statusBarVisibility": "visible"
+        },
+        "debug": {
+            "statusBarVisibility": "visible"
+        },
+        "buildTarget": {
+            "statusBarVisibility": "visible"
+        },
+        "launchTarget": {
+            "statusBarVisibility": "visible"
+        }
+    }
 }
