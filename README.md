@@ -43,20 +43,11 @@ Additionally it's recommended to configure Docker to use the WSL 2 backend.
 
 ## 2) Building the examples
 
-To build the examples, use the following commands from VSCode's command palette (Meta+Shift+P):
+To build, run the `CMake: ˜Build` (F7) command from Visual Studio Code's command palette (Meta+Shift+P).
 
-- `CMake: Configure`
-- `CMake: Build` (select the `[Unspecified]` kit when prompted)
+## 3) Checking the environment
 
-## 3) Activating the environment
-
-Open a New Terminal and activate the environment with the following command:
-
-```sh
-source llvm-env
-```
-
-To verify, run the following command:
+To verify if the environment is set up correctly, run the following command:
 
 ```sh
 llvm-config --prefix
@@ -72,6 +63,6 @@ The `${workspaceFolder}/build` directory will also be added to your `PATH`, so y
 hello
 ```
 
-Output:
+Expected output:
 
 > remill version: e72a100

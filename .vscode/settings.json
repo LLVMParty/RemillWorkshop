@@ -1,23 +1,30 @@
 {
+    "files.exclude": {
+        "**/.cache": true,
+        "**/.clang-format": true,
+        "**/.editorconfig": true,
+        "**/.gitattributes": true,
+        "**/.gitignore": true,
+        "**/.vscode": true
+    },
+    "workbench.startupEditor": "none",
+    "editor.formatOnSave": false,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "[cpp]": {
+        "editor.formatOnSave": true
+    },
+    "[c]": {
+        "editor.formatOnSave": true
+    },
+    "[json]": {
+        "editor.formatOnSave": true
+    },
     "clangd.arguments": [
         "--compile-commands-dir=${workspaceFolder}/build",
         "-header-insertion=never"
     ],
-    "files.exclude": {
-        "**/.cache": true,
-        "**/.clang-format": true,
-        "**/.devcontainer": true,
-        "**/.editorconfig": true,
-        "**/.gitattributes": true,
-        "**/.gitignore": true,
-        "**/.vscode": true,
-        "**/CMakeLists.txt": true,
-    },
-    "editor.formatOnSave": true,
-    "[markdown]": {
-        "editor.formatOnSave": false
-    },
+    "clang-format.executable": "clang-format",
     "cmake.configureOnOpen": false,
-    "workbench.startupEditor": "none",
-    "C_Cpp.intelliSenseEngine": "disabled",
+    "cmake.options.statusBarVisibility": "compact",
+    "cmake.useCMakePresets": "always"
 }

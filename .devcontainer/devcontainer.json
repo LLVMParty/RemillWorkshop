@@ -12,12 +12,18 @@
                 "llvm-vs-code-extensions.vscode-clangd",
                 "twxs.cmake",
                 "ms-vscode.cmake-tools",
-                "revng.llvm-ir",
+                "RReverser.llvm",
                 "EditorConfig.EditorConfig",
                 "tamasfe.even-better-toml",
                 "ms-vscode.cpptools",
-                "tintinweb.graphviz-interactive-preview"
+                "tintinweb.graphviz-interactive-preview",
+                "xaver.clang-format",
+                "esbenp.prettier-vscode"
             ]
         }
-    }
+    },
+    "remoteEnv": {
+        "PATH": "/workspaces/RemillWorkshop/build:/cxx-common/install/bin:${containerEnv:PATH}"
+    },
+    "postCreateCommand": "cmake --preset clang"
 }
