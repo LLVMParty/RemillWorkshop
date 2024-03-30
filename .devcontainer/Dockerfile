@@ -14,4 +14,7 @@ RUN apt update \
         libxml2-dev \
         ncurses-dev \
  && apt remove -y gcc gcc-11 \
- && apt autoremove -y
+ && apt autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
+LABEL org.opencontainers.image.source=https://github.com/LLVMParty/RemillWorkshop

@@ -7,15 +7,18 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 ### 1) GitHub Codespaces (easy)
 
 1. Login to your GitHub account
-2. Fork this repository
+2. [Fork this repository](https://github.com/LLVMParty/RemillWorkshop/fork)
 3. Click the green `<> Code` button
-4. Select `Codespaces`
-5. Click `Create codespace on master`
-6. Wait a few minutes while the image is loading ☕
+4. Press `...` and then `New with options...`
+5. Change `Machine type` to `4-core`
+6. Then `Create codespace`
+7. Wait a ~3 minutes while the image is loading ☕
+   - Press `Show log` to see progress
 
-![Guide on creating a codespace](.devcontainer/codespace.png)
+| ![](.devcontainer/new-codespace.png) | ![](.devcontainer/machine-type.png) |
+|---|---|
 
-**Note**: Remember to shut down your codespace [here](https://github.com/settings/codespaces) when you're finished.
+**Note**: Remember to shut down your codespace [here](https://github.com/codespaces) when you're finished.
 
 <sub>_Alternatively you can set things up locally with Docker Desktop_ (**not recommended**):</sub>
 <details>
@@ -43,7 +46,7 @@ Additionally it's recommended to configure Docker to use the WSL 2 backend.
 
 ## 2) Building the examples
 
-To build, run the `CMake: ˜Build` (F7) command from Visual Studio Code's command palette (Meta+Shift+P).
+To build, run the `CMake: ˜Build` (F7) command from Visual Studio Code's command palette (F1).
 
 ## 3) Checking the environment
 

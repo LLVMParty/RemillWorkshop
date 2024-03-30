@@ -2,9 +2,7 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
     "name": "remill-workshop",
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
+    "image": "ghcr.io/llvmparty/remillworkshop:8f93b1cf",
     // Configure tool-specific properties.
     "customizations": {
         "vscode": {
@@ -17,7 +15,6 @@
                 "tamasfe.even-better-toml",
                 "ms-vscode.cpptools",
                 "tintinweb.graphviz-interactive-preview",
-                "xaver.clang-format",
                 "esbenp.prettier-vscode"
             ]
         }
