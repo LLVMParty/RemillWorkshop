@@ -1,9 +1,8 @@
 # LLVM IR
 
-Activate the environment and go into this folder:
+First, go into this folder:
 
 ```sh
-source llvm-env
 cd exercises/1_llvmir
 ```
 
@@ -15,14 +14,14 @@ Compile the file to LLVM bitcode:
 clang-15 -c ir1.cpp -emit-llvm -o ir1.bc
 ```
 
-This will generate `ir1.bc`, which you can disassemble with `llvm-dis`:
+This will generate `ir1.bc`, which you can disassemble with `llvm-dis` (and then view in VSCode):
 
 ```sh
 llvm-dis ir1.bc -o ir1.ll
 llvm-dis ir1.bc -o ir1.ll --show-annotations
 ```
 
-The second example:
+You can also emit a human-readable bitcode file directly:
 
 ```sh
 clang-15 -c ir2.cpp -emit-llvm -S -o ir2.ll

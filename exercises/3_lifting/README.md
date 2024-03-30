@@ -1,9 +1,8 @@
 # Lifting
 
-Activate the environment and go into this folder:
+First, go into this folder:
 
 ```sh
-source llvm-env
 cd exercises/3_lifting
 ```
 

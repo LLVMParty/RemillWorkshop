@@ -22,6 +22,7 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 
 <sub>_Alternatively you can set things up locally with Docker Desktop_ (**not recommended**):</sub>
 <details>
+
 ### Docker Desktop (tricky)
 
 - Install/Update [Docker Desktop](https://www.docker.com/products/docker-desktop/) ([alternatives](https://code.visualstudio.com/remote/advancedcontainers/docker-options))
@@ -42,15 +43,29 @@ git config --global core.autocrlf false
 ```
 
 Additionally it's recommended to configure Docker to use the WSL 2 backend.
+
 </details>
 
 ## 2) Building the examples
 
-To build, run the `CMake: ˜Build` (F7) command from Visual Studio Code's command palette (F1).
+To build the project, press the `Build` button in the status bar:
+
+![](.devcontainer/build-button.png)
+
+You will be prompted for a preset, select `clang` and the build will start:
+
+![](.devcontainer/select-preset.png)
+
+Alternatively you can build with the following commands:
+
+```sh
+cmake --preset clang
+cmake --build build
+```
 
 ## 3) Checking the environment
 
-To verify if the environment is set up correctly, run the following command:
+To verify if the environment is set up correctly, run:
 
 ```sh
 llvm-config --prefix
@@ -58,7 +73,7 @@ llvm-config --prefix
 
 Expected output:
 
-> /cxx-common/install
+> `/cxx-common/install`
 
 The `${workspaceFolder}/build` directory will also be added to your `PATH`, so you can easily access your tools from anywhere. To verify, run the follow command:
 
@@ -68,4 +83,4 @@ hello
 
 Expected output:
 
-> remill version: e72a100
+> `remill version: e72a100`

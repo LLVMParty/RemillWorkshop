@@ -2,10 +2,9 @@
 
 During these exercises you will write simple command line utilities to inspect and manipulate bitcode.
 
-Activate the environment and go into this folder:
+First, go into this folder:
 
 ```sh
-source llvm-env
 cd exercises/2_api
 ```
 
