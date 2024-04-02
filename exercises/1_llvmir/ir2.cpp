@@ -1,4 +1,5 @@
-#include <cstdint>
+#include <stdint.h>
+#include <stdio.h>
 
 #define TEST_FUNCTION extern "C"
 
@@ -103,4 +104,10 @@ TEST_FUNCTION uint64_t test10_switch(uint64_t n) {
   default:
     return n & 0x1337;
   }
+}
+
+void test() {
+  puts("Hello, world!");
+  printf("test1: %llu\n", test1_linear_flow(42));
+  printf("test2: %llu\n", test2_if_else(8));
 }
