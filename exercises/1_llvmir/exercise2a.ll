@@ -40,7 +40,7 @@ entry:
 
 define dso_local float @exercise5(ptr nocapture noundef readonly %player) local_unnamed_addr #0 {
 entry:
-  %z = getelementptr inbounds %struct.Player, ptr %player, i64 0, i32 4, i32 1, i32 2
+  %z = getelementptr inbounds %struct.Player, ptr %player, i64 3, i32 4, i32 1, i32 2
   %0 = load float, ptr %z, align 4
   ret float %0
 }

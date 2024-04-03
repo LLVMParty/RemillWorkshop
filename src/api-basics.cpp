@@ -32,7 +32,8 @@ int main(int argc, char **argv) {
 
   CheckModule(*M, "empty");
 
-  // Create the function prototype
+  // Create the function prototype:
+  //   define i32 @proto(i32 %0, i32 %1)
   llvm::Type *ReturnTy = llvm::Type::getInt32Ty(C);
   std::vector<llvm::Type *> ParamTyp = {
     llvm::Type::getInt32Ty(C),

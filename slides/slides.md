@@ -9,7 +9,7 @@ section {
 }
 </style>
 
-# Workshop: LLVM Lifting Basics
+# Workshop: LLVM for Reverse Engineers
 
 ![bg height:40%](llvm_logo.png) ![bg height:40%](remill_logo.png)
 <br><br><br><br><br><br><br><br>
@@ -19,32 +19,38 @@ _Duncan Ogilvie_
 
 <!-- paginate: true -->
 
-# Setup: [remill.ogilvie.pl](https://remill.ogilvie.pl)
+# Setup: [workshop.ogilvie.pl](https://workshop.ogilvie.pl)
 
 <br>
 
 1. Login to your GitHub account
-2. Fork this repository
+2. [Fork the repository](https://github.com/LLVMParty/RemillWorkshop/fork)
 3. Click the green `<> Code` button
-4. Select `Codespaces`
-5. Click `Create codespace on master`
-6. Wait a few minutes while the image is loading ☕
+4. Press `...` and then `New with options...`
+5. Change `Machine type` to `4-core`
+6. Then `Create codespace`
+7. Wait a ~3 minutes while the image is loading ☕
+   - Press `Show log` to see progress
 
 ---
 
 # Introduction
 
 - Meant for absolute (LLVM) beginners
+  - **C(++) programming experience absolutely required!**
+  - Additionally you need basic reverse engineering knowledge
 - Format: hands-on workshop
 - Interactive
+- Available for on-site training: [`training@ogilvie.pl`](mailto:training@ogilvie.pl)
 
 ---
 
 # Outline
 
-- LLVM IR
-- LLVM API
-- Remill
+- LLVM IR (1h30m)
+- Coffee break (15m)
+- LLVM API (1h30m)
+- Remill (time permitting)
 
 ---
 
@@ -55,20 +61,24 @@ _Duncan Ogilvie_
   - Meant for compiler development
 - **I**ntermediate **R**epresentation (IR)
   - Platform agnostic (mostly)
-  - Functions, control flow, etc.
-  - **R**educed **I**nstruction **S**et **C**omputer (RISC)
+  - Functions, basic blocks, control flow, etc.
+  - **R**educed **I**nstruction **S**et **C**omputer ('RISC')
   - **S**ingle **S**tatic **A**ssignment (SSA)
 - Reusable optimization/code generation pipeline
+
+![bg right:36% width:80%](./llvm-architecture.png)
 
 ---
 
 # LLVM IR: Module
 
-- Globals
 - Functions
   - Basic Blocks
     - Instructions ([reference](https://llvm.org/docs/LangRef.html))
+- Globals (variables)
 - Metadata
+
+![bg right:50% w:80%](./llvm-module.png)
 
 ---
 
@@ -120,14 +130,14 @@ attributes #0 = { noinline nounwind optnone uwtable ... }
 
 ---
 
-# LLVM IR: SSA
+# LLVM IR: Single Static Assignment (SSA)
 
 - Local _values_ are defined, not assigned
   - _Variable_ is a misnomer
+  - Also called _registers_
 - You cannot define the same value twice
 - Does not apply to memory
   - The `load` and `store` instructions operate on `ptr` values
-- Phi nodes are used as merge points
 
 ---
 
@@ -140,7 +150,7 @@ pre {
 
 # LLVM IR: Control Flow
 
-[`cfg_alloca.ll`](https://godbolt.org/z/cGzeefh7K):
+[`cfg_alloca.ll`](https://godbolt.org/z/az5GoTz5W):
 
 ```c
 uint32_t cfg(uint32_t x) {
@@ -153,14 +163,14 @@ uint32_t cfg(uint32_t x) {
 define i32 @cfg(i32 %x) {
   %temp = alloca i32, align 4
   %cond = icmp ugt i32 %x, 10
-  br i1 %cond, label %bb.if, label %bb.else
-bb.if:
+  br i1 %cond, label %bb_if, label %bb_else
+bb_if:      ; preds = %entry, x > 10
   store i32 123, ptr %temp, align 4
-  br label %bb.end
-bb.else:
+  br label %bb_end
+bb_else:    ; preds = %entry, !(x > 10)
   store i32 321, ptr %temp, align 4
-  br label %bb.end
-bb.end:
+  br label %bb_end
+bb_end:     ; preds = %bb_if, %bb_else
   %result = load i32, ptr %temp, align 4
   ret i32 %result
 }
@@ -170,27 +180,29 @@ bb.end:
 
 # LLVM IR: `phi`
 
-[`cfg_phi.ll`](https://godbolt.org/z/njxfeYTan):
+[`cfg_phi.ll`](https://godbolt.org/z/76xWWKnfr):
 
 ```llvm
 define i32 @cfg(i32 %x) {
   %cond = icmp ugt i32 %x, 10
-  br i1 %cond, label %bb.if, label %bb.else
-bb.if:
+  br i1 %cond, label %bb_if, label %bb_else
+bb_if:      ; preds = %entry, x > 10
   %result_if = add i32 0, 123
-  br label %bb.end
-bb.else:
+  br label %bb_end
+bb_else:    ; preds = %entry, !(x > 10)
   %result_else = add i32 0, 321
-  br label %bb.end
-bb.end:
-  %result = phi i32 [%result_if, %bb.if], [%result_else, %bb.else]
+  br label %bb_end
+bb_end:     ; preds = %bb_if, %bb_else
+  %result = phi i32 [%result_if, %bb_if], [%result_else, %bb_else]
   ret i32 %result
 }
 ```
 
+Simplifies analysis/optimization passes.
+
 ---
 
-# LLVM IR: `select`
+# LLVM IR: `select` (ternary)
 
 [`cfg_select.ll`](https://godbolt.org/z/haef8ojsa):
 
@@ -201,6 +213,24 @@ define i32 @cfg(i32 %x) {
   ret i32 %result
 }
 ```
+
+<br>
+
+```c
+uint32_t cfg(uint32_t x) {
+  return (x > 10) // cond
+    ? 123
+    : 321
+}
+```
+
+---
+
+# LLVM IR: Exercises (part 1)
+
+<br>
+
+_Instructions_: `exercises/1_llvmir/README.md` (Exercise 1a-1d)
 
 ---
 
@@ -343,11 +373,19 @@ define i64 @structExample3_opt(ptr %s) #0 {
 
 ---
 
-# LLVM IR: Exercises
+# LLVM IR: Exercises (part 2)
 
 <br>
 
-_Instructions_: `exercises/1_llvmir/README.md`
+_Instructions_: `exercises/1_llvmir/README.md` (Exercise 2a)
+
+---
+
+# Quick break (15 min)
+
+<br>
+
+# ☕️ 🍵
 
 ---
 
@@ -363,10 +401,11 @@ _Instructions_: `exercises/1_llvmir/README.md`
 
 - [Well-formedness](https://www.quora.com/How-do-Terminators-work-in-the-LLVM-IR)
   - Type checking
-  - Terminator instructions
-  - Entry no predecessor
-  - CFG integrity
-  - `phi` / `alloca` at the start
+  - Control Flow Graph (CFG) integrity
+    - Terminator instructions
+    - Entry block cannot have predecessors
+    - `phi` / `alloca` at the start
+    - Values defined before they are used
 - `llvm::verifyModule` + `LLVM_ENABLE_ASSERTIONS`
 
 ---
@@ -390,7 +429,7 @@ Walkthrough: `src/api-basics.cpp`
   }
 </style>
 
-- `llvm::Value *` (same pointer -> same value)
+- [`llvm::Value*`](https://llvm.org/doxygen/classllvm_1_1Value.html) (same pointer -> same value)
 - `llvm::isa<T>`/`llvm::dyn_cast<T>`
 
 <br>
@@ -427,17 +466,19 @@ _Instructions_: `exercises/2_api/README.md`
 
 # Remill: Concepts
 
-- Semantics in C++
+- Instruction semantics in C++
   - Easier to maintain
   - Compiled to LLVM IR
 - `State*` structure -> CPU Registers
-- `Memory*` pointer -> Memory Manager
+- `Memory*` pointer -> memory manager
   - Total ordering to preserve semantics
 - 'Massaging' required
 
 ---
 
 # Remill: Instruction Semantics
+
+Semantics of the x86 `mov` instruction:
 
 ```cpp
 template <typename D, typename S>
@@ -516,10 +557,17 @@ Memory *__remill_write_memory_64(Memory *m, addr_t a, uint64_t v);
 
 <br>
 
+_Helpers_: `helpers/x86_64/RemillHelpers.cpp`
 _Instructions_: `exercises/3_lifting/README.md`
+
+<br>
+
+_Note_: Read the [SATURN](https://arxiv.org/abs/1909.01752) paper if you want to see where this can take you...
 
 ---
 
-# Thanks
+# Closing Remarks
 
-Matteo Favaro - mentoring and slides
+- Continue at home!
+- Thanks: [Matteo Favaro](https://github.com/fvrmatteo)
+- Get in touch: [`training@ogilvie.pl`](mailto:training@ogilvie.pl)

@@ -24,9 +24,7 @@ sources = ["src/bc-stats.cpp"]
 
 ## bc-stats
 
-_Exercise_: write a simple tool to count the number of load/store/call instructions.
-
-**Note**: For this exercise you have to remove remove the logic related to saving the output bitcode and just output the results to the command line as follows:
+_Exercise_: write a simple tool to count the number of load/store/call instructions. You can output to `llvm::outs()` and it should look something like this:
 
 ```
 myFunction:

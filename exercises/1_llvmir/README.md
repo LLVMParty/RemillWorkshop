@@ -44,9 +44,11 @@ Compile `ir2.cpp` to LLVM bitcode and answer the following questions:
    - `-O2`:
    - `-O3`:
 
+**Note**: Remember to keep the reference documentation handy: https://llvm.org/docs/LangRef.html
+
 ### Exercise 1c
 
-Open the following link: https://godbolt.org/z/9xYPG1bc8.
+Open the following link: https://godbolt.org/z/83EKPPh49.
 
 **Questions**:
 
