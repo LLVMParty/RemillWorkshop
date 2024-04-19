@@ -50,6 +50,10 @@ int main() {
   EXPECT_EQ("TEST3", bytes_to_bits(2), 16);
   EXPECT_EQ("TEST3", bytes_to_bits(8), 64);
   puts("");
+  EXPECT_EQ("TEST6", upper_32_bits(0x12345678BBBBBBDD), 0x12345678);
+  EXPECT_EQ("TEST6", upper_32_bits(0x1337), 0);
+  EXPECT_EQ("TEST6", upper_32_bits(0x0000000800000012), 8);
+  puts("");
   EXPECT_EQ("TEST5", vm_operation(true, 1, 2), 3);
   EXPECT_EQ("TEST5", vm_operation(true, 55, 11), 66);
   EXPECT_EQ("TEST5", vm_operation(false, 55, 11), 44);
@@ -59,8 +63,4 @@ int main() {
   EXPECT_EQ("TEST4", g_stored, 55);
   pass_to_store_value(54);
   EXPECT_EQ("TEST4", g_stored, 54);
-  puts("");
-  EXPECT_EQ("TEST6", upper_32_bits(0x12345678BBBBBBDD), 0x12345678);
-  EXPECT_EQ("TEST6", upper_32_bits(0x1337), 0);
-  EXPECT_EQ("TEST6", upper_32_bits(0x0000000800000012), 8);
 }

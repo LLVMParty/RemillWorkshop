@@ -52,8 +52,8 @@ Open the following link: https://godbolt.org/z/83EKPPh49.
 
 **Questions**:
 
-1. Which optimization pass introduces `phi` nodes?
-2. Which optimization pass creates a `select` instruction?
+1. Which optimization pass (or passes) introduce `phi` nodes?
+2. Which optimization pass (or passes) create a `select` instruction?
 3. Why is the `test` function not optimized?
 4. What architecture was the module compiled for?
 5. Which compiler version was used?
@@ -69,8 +69,11 @@ clang exercise1d.cpp exercise1d.ll -o exercise1d && ./exercise1d
 1. `uint32_t ps3_random_number();` (return 42)
 2. `uint32_t add_42(uint32_t x);`
 3. `uint32_t bytes_to_bits(uint32_t bytes);`
-4. `void pass_to_store_value(uint32_t n)` (call some extern "C" function)
+4. `uint32_t upper_32_bits(uint64_t n);`
 5. `uint32_t vm_operation(bool do_add, uint32_t x, uint32_t y);`
+   - Hint: use the `select` or `br` instruction to implement this.
+6. `void pass_to_store_value(uint32_t n)`:
+   - You need to call the `store_value` function defined in `exercise1d.cpp`. Use the `declare` keyword in LLVM IR for this.
 
 _Note_: If you get stuck, ask a neighbor or use Godbolt to write C: https://godbolt.org/z/af44zfb9q
 

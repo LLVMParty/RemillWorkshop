@@ -31,7 +31,7 @@ remill-lift -bytes "4889f8c3" -address 0x1000 -arch amd64 -ir_pre_out lift0-pre.
 ```
 
 First open `lift0-pre.ll` and do the following exercises:
-- Find the LLVM IR function with the semantics of our lifted bytes.
+- Take a look at the generated `sub_1000` function.
 - Find the semantics of the `ret` instruction (use the `bc-demangle` tool to make it easier to read).
 
 Now look at the optimized `lift0.ll` and do these exercises:
@@ -98,6 +98,8 @@ remill-lift -bytes "48c1ef03488d047f480539050000c3" -address 0x1000 -arch amd64 
 llvm-link lift1.ll helpers.ll -o lift1-linked.ll -S
 opt "-passes=default<O3>,strip" lift1-linked.ll -o lift1-recovered.ll -S
 ```
+
+**Note**: the function with the recovered calling convention is named `@call_sub_<address>`.
 
 Exercises:
 - Compile `lift3.cpp` and reconstruct the `test3_complex_cfg` function.
