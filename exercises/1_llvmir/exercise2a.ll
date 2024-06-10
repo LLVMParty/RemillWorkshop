@@ -2,46 +2,46 @@
 %struct.Vec3 = type { float, float, float }
 %struct.Bullet = type { i32, %struct.Vec3 }
 
-define dso_local i32 @exercise0(ptr nocapture noundef readonly %array, i64 noundef %n) local_unnamed_addr #0 {
+define i32 @exercise0(ptr readonly %array, i64 %n) #0 {
 entry:
-  %arrayidx = getelementptr inbounds i64, ptr %array, i64 %n
-  %0 = load i64, ptr %arrayidx, align 8
+  %arrayidx = getelementptr i64, ptr %array, i64 %n
+  %0 = load i64, ptr %arrayidx
   %conv = trunc i64 %0 to i32
   ret i32 %conv
 }
 
-define dso_local i32 @exercise1(ptr nocapture noundef readonly %player) local_unnamed_addr #0 {
+define i32 @exercise1(ptr readonly %player) #0 {
 entry:
-  %0 = load i32, ptr %player, align 4
+  %0 = load i32, ptr %player
   ret i32 %0
 }
 
-define dso_local nonnull ptr @exercise2(ptr noundef readnone %player) local_unnamed_addr #1 {
+define nonnull ptr @exercise2(ptr readnone %player) #1 {
 entry:
-  %name = getelementptr inbounds %struct.Player, ptr %player, i64 0, i32 1
+  %name = getelementptr %struct.Player, ptr %player, i64 0, i32 1
   ret ptr %name
 }
 
-define dso_local nonnull ptr @exercise3(ptr noundef readnone %player) local_unnamed_addr #2 {
+define nonnull ptr @exercise3(ptr readnone %player) #2 {
 entry:
-  %position = getelementptr inbounds %struct.Player, ptr %player, i64 0, i32 2
+  %position = getelementptr %struct.Player, ptr %player, i64 0, i32 2
   ret ptr %position
 }
 
-define dso_local float @exercise4(ptr noundef readonly %player) local_unnamed_addr #3 {
+define float @exercise4(ptr readonly %player) #3 {
 entry:
-  %call = tail call ptr @exercise3(ptr noundef %player)
-  %0 = load float, ptr %call, align 4
-  %direction = getelementptr inbounds %struct.Player, ptr %player, i64 0, i32 3
-  %1 = load float, ptr %direction, align 4
+  %call = tail call ptr @exercise3(ptr %player)
+  %0 = load float, ptr %call
+  %direction = getelementptr %struct.Player, ptr %player, i64 0, i32 3
+  %1 = load float, ptr %direction
   %add = fadd float %0, %1
   ret float %add
 }
 
-define dso_local float @exercise5(ptr nocapture noundef readonly %player) local_unnamed_addr #0 {
+define float @exercise5(ptr readonly %player) #0 {
 entry:
-  %z = getelementptr inbounds %struct.Player, ptr %player, i64 3, i32 4, i32 1, i32 2
-  %0 = load float, ptr %z, align 4
+  %z = getelementptr %struct.Player, ptr %player, i64 3, i32 4, i32 1, i32 2
+  %0 = load float, ptr %z
   ret float %0
 }
 

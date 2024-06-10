@@ -110,38 +110,41 @@ _Note_: tame your expectations.
 **C**:
 
 ```c
-int hello(int x) {
-  return x + 42;
+int hello(int x, int y) {
+  return x + y;
 }
 ```
 
 **LLVM IR**:
 
 ```llvm
-define i32 @hello(i32 %0) {
-1:
-    %2 = add i32 %0, 42
-    ret i32 %2
+define i32 @hello(i32 %0, i32 %1) {
+2: ; entry block label (optional)
+  %3 = add i32 %0, %1
+  ret i32 %3
 }
 ```
 
 - Identifiers: `@global`, `%local`
 - No signed/unsigned number types
-- [Implicit numbering](https://godbolt.org/z/c3hhM4Ees) vs [explicit naming](https://godbolt.org/z/9eT4Pxo8h) of _values_
+- [Implicit numbering](https://godbolt.org/z/zjEY6j1YE) vs [explicit naming](https://godbolt.org/z/Kr3W85hYf) of _values_
 
 ---
 
 # LLVM IR: Clang
 
-[**hello.c**](https://godbolt.org/z/bcG3frbMW):
+[**hello.c**](https://godbolt.org/z/nn8P6xE14):
 
 ```llvm
-define dso_local i32 @hello(i32 noundef %0) #0 {
-  %2 = alloca i32, align 4
-  store i32 %0, ptr %2, align 4
-  %3 = load i32, ptr %2, align 4
-  %4 = add i32 %3, 42
-  ret i32 %4
+define dso_local i32 @hello(i32 noundef %0, i32 noundef %1) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  store i32 %0, ptr %3, align 4
+  store i32 %1, ptr %4, align 4
+  %5 = load i32, ptr %3, align 4
+  %6 = load i32, ptr %4, align 4
+  %7 = add i32 %5, %6
+  ret i32 %7
 }
 
 attributes #0 = { noinline nounwind optnone uwtable ... }
@@ -259,13 +262,13 @@ _Instructions_: `exercises/1_llvmir/README.md` (Exercise 1a-1d)
 
 # LLVM IR: [`getelementptr`](https://llvm.org/docs/GetElementPtr.html)
 
-- Pointer arithmetic
+- Purpose: pointer arithmetic
   - Arrays
   - Structs
+  - Used absolutely everywhere
 - **Does not** read memory
-- [Opaque Pointers](https://llvm.org/docs/OpaquePointers.html)
-  - Default since LLVM 15
-  - Previously pointers had a type
+- [Most confusing](https://blog.yossarian.net/2020/09/19/LLVMs-getelementptr-by-example)
+  - Similar to the x86 `lea` instruction
 
 ---
 
@@ -275,7 +278,7 @@ _Instructions_: `exercises/1_llvmir/README.md` (Exercise 1a-1d)
 
 ```c
 uint32_t arrayExample(uint32_t* arr) {
-    return arr[5];
+  return arr[5];
 }
 ```
 
@@ -301,7 +304,7 @@ define i32 @arrayExample(ptr %arr) #0 {
 typedef struct { uint64_t a[2]; uint32_t b; uint32_t c[5]; } MyStruct;
 
 uint32_t structExample1(MyStruct* s) {
-    return s->b; // s[0].b
+  return s->b; // s[0].b
 }
 ```
 
@@ -329,7 +332,7 @@ define i32 @structExample1(ptr %s) #0 {
 typedef struct { uint64_t a[2]; uint32_t b; uint32_t c[5]; } MyStruct;
 
 uint32_t structExample2(MyStruct* s) {
-    return s->c[3];
+  return s->c[3];
 }
 ```
 
@@ -543,13 +546,13 @@ Memory *__remill_basic_block(State &state, Ptr block_addr, Memory *memory);
 
 ```cpp
 Memory *__remill_basic_block(State &state, Ptr block_addr, Memory *memory) {
-    // mov rax, rdi
-    state.rax = state.rdi;
-    state.rip += 3;
-    // ret
-    state.rip = *(Ptr*)state.rsp;
-    state.rsp += sizeof(Ptr);
-    return __remill_function_return(state, state.rip, memory);
+  // mov rax, rdi
+  state.rax = state.rdi;
+  state.rip += 3;
+  // ret
+  state.rip = *(Ptr*)state.rsp;
+  state.rsp += sizeof(Ptr);
+  return __remill_function_return(state, state.rip, memory);
 }
 ```
 
