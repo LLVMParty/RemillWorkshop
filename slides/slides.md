@@ -45,6 +45,14 @@ _Duncan Ogilvie_
 
 ---
 
+# Who am I?
+
+- Creator of [x64dbg](https://x64dbg.com)
+- Worked in DRM for 5 years
+- Currently working in mobile security R&D
+
+---
+
 # Outline
 
 - LLVM IR (1h30m)
@@ -67,6 +75,21 @@ _Duncan Ogilvie_
 - Reusable optimization/code generation pipeline
 
 ![bg right:36% width:80%](./llvm-architecture.png)
+
+---
+
+# Why LLVM IR?
+
+- Lifting
+  - Deobfuscation
+  - Emulation
+  - Binary rewriting <!-- security checks, asan, cross-platform porting -->
+- Fuzzing/analysis (vulnerability research)
+- Obfuscation
+
+<br>
+
+_Note_: tame your expectations.
 
 ---
 
@@ -560,10 +583,6 @@ Memory *__remill_write_memory_64(Memory *m, addr_t a, uint64_t v);
 _Helpers_: `helpers/x86_64/RemillHelpers.cpp`
 _Instructions_: `exercises/3_lifting/README.md`
 
-<br>
-
-_Note_: Read the [SATURN](https://arxiv.org/abs/1909.01752) paper if you want to see where this can take you...
-
 ---
 
 # Closing Remarks
@@ -571,3 +590,18 @@ _Note_: Read the [SATURN](https://arxiv.org/abs/1909.01752) paper if you want to
 - Continue at home!
 - Thanks: [Matteo Favaro](https://github.com/fvrmatteo)
 - Get in touch: [`training@ogilvie.pl`](mailto:training@ogilvie.pl)
+
+---
+
+# Bonus: links
+
+- [KLEE Symbolic Execution Engine](https://klee-se.org/)
+- [SymCC](https://github.com/eurecom-s3/symcc)
+- [SATURN](https://arxiv.org/abs/1909.01752)
+- [Tickling VMProtect with LLVM](https://secret.club/2021/09/08/vmprotect-llvm-lifting-1.html)
+- [VMProtect devirtualization using Triton/LLVM](https://github.com/JonathanSalwan/VMProtect-devirtualization)
+- [souper](https://github.com/google/souper)
+- [RetDec](https://github.com/avast/retdec)
+- [Tigress transformations](https://tigress.wtf/transformations.html)
+- [Modern Obfuscation Techniques](https://is.muni.cz/th/v1f9y/Modern_obfuscation_techniques.pdf)
+- [RISC-Y Business: Raging against the reduced machine](https://secret.club/2023/12/24/riscy-business.html)
