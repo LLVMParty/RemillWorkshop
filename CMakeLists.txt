@@ -157,3 +157,107 @@ get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} D
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-tool)
 endif()
+
+# Target: bc-stats
+set(bc-stats_SOURCES
+	"src/bc-stats.cpp"
+	cmake.toml
+)
+
+add_executable(bc-stats)
+
+target_sources(bc-stats PRIVATE ${bc-stats_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bc-stats_SOURCES})
+
+target_compile_features(bc-stats PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(bc-stats PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-stats)
+endif()
+
+# Target: bc-demangle
+set(bc-demangle_SOURCES
+	"src/bc-demangle.cpp"
+	cmake.toml
+)
+
+add_executable(bc-demangle)
+
+target_sources(bc-demangle PRIVATE ${bc-demangle_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bc-demangle_SOURCES})
+
+target_compile_features(bc-demangle PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(bc-demangle PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-demangle)
+endif()
+
+# Target: bc-graphviz
+set(bc-graphviz_SOURCES
+	"src/bc-graphviz.cpp"
+	cmake.toml
+)
+
+add_executable(bc-graphviz)
+
+target_sources(bc-graphviz PRIVATE ${bc-graphviz_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bc-graphviz_SOURCES})
+
+target_compile_features(bc-graphviz PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(bc-graphviz PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-graphviz)
+endif()
+
+# Target: bc-lldhack
+set(bc-lldhack_SOURCES
+	"src/bc-lldhack.cpp"
+	cmake.toml
+)
+
+add_executable(bc-lldhack)
+
+target_sources(bc-lldhack PRIVATE ${bc-lldhack_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bc-lldhack_SOURCES})
+
+target_compile_features(bc-lldhack PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(bc-lldhack PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-lldhack)
+endif()
