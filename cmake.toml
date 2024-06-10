@@ -40,3 +40,11 @@ sources = ["src/api-basics.cpp"]
 [target.bc-tool]
 type = "llvm-tool"
 sources = ["src/bc-tool.cpp"]
+
+[target.bc-stats]
+type = "llvm-tool"
+sources = ["src/bc-stats.cpp"]
+
+[target.bc-demangle]
+type = "llvm-tool"
+sources = ["src/bc-demangle.cpp"]
