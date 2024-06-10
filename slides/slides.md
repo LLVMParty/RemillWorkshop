@@ -57,8 +57,7 @@ _Duncan Ogilvie_
 
 - LLVM IR (1h30m)
 - Coffee break (15m)
-- LLVM API (1h30m)
-- Remill (time permitting)
+- Binary lifting (1h)
 
 ---
 
@@ -412,71 +411,6 @@ _Instructions_: `exercises/1_llvmir/README.md` (Exercise 2a)
 <br>
 
 # ☕️ 🍵
-
----
-
-# LLVM API
-
-- 😭 Difficult to navigate
-- ✅ Annoying to set up
-- 🤖 Use Google/ChatGPT liberally
-
----
-
-# LLVM IR: Verification
-
-- [Well-formedness](https://www.quora.com/How-do-Terminators-work-in-the-LLVM-IR)
-  - Type checking
-  - Control Flow Graph (CFG) integrity
-    - Terminator instructions
-    - Entry block cannot have predecessors
-    - `phi` / `alloca` at the start
-    - Values defined before they are used
-- `llvm::verifyModule` + `LLVM_ENABLE_ASSERTIONS`
-
----
-
-# LLVM API: Basics
-
-<br>
-
-Walkthrough: `src/api-basics.cpp`
-
----
-
-# LLVM API: Memory Model
-
-<style scoped>
-  img[alt~='center'] {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    border: none;
-  }
-</style>
-
-- [`llvm::Value*`](https://llvm.org/doxygen/classllvm_1_1Value.html) (same pointer -> same value)
-- `llvm::isa<T>`/`llvm::dyn_cast<T>`
-
-<br>
-
-![height:340px center](value.png)
-
----
-
-# LLVM API: Tool template
-
-<br>
-
-Show: `src/bc-tool.cpp`
-
----
-
-# LLVM API: Exercises
-
-<br>
-
-_Instructions_: `exercises/2_api/README.md`
 
 ---
 
