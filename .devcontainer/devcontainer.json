@@ -20,7 +20,7 @@
         }
     },
     "remoteEnv": {
-        "PATH": "/workspaces/RemillWorkshop/build:/cxx-common/install/bin:${containerEnv:PATH}"
+        "PATH": "${containerWorkspaceFolder}/build:/cxx-common/install/bin:${containerEnv:PATH}"
     },
     "postCreateCommand": "cmake --preset clang"
 }
