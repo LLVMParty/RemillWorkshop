@@ -266,8 +266,8 @@ _Instructions_: `exercises/1_llvmir/README.md` (Exercise 1a-1d)
   - Arrays
   - Structs
   - Used absolutely everywhere
-- **Does not** read memory
-- [Most confusing](https://blog.yossarian.net/2020/09/19/LLVMs-getelementptr-by-example)
+- **Does not read memory**
+- [Most confusing](https://blog.yossarian.net/2020/09/19/LLVMs-getelementptr-by-example) instruction
   - Similar to the x86 `lea` instruction
 
 ---
@@ -514,7 +514,7 @@ Memory *__remill_write_memory_64(Memory *m, addr_t a, uint64_t v);
 
 ---
 
-# Lifting Diagram
+# Lifting Overview
 
 <!-- TODO: diagram of linking together multiple programs
 especially note the fact that you can link together LLVM IR with regular C/C++ code -->
