@@ -24,19 +24,33 @@ mov rax, rdi
 ret
 ```
 
-Now lift it to bitcode:
+Lift the assembly to bitcode:
 
 ```sh
 remill-lift -bytes "4889f8c3" -address 0x1000 -arch amd64 -ir_pre_out lift0-pre.ll -ir_out lift0.ll
 ```
 
-First open `lift0-pre.ll` and do the following exercises:
-- Take a look at the generated `sub_1000` function.
-- Find the semantics of the `ret` instruction (use the `bc-demangle` tool to make it easier to read).
+_Note_: the `-address` argument you specify will determine the name of the lifted function. For `0x1000` the function name will be `sub_1000`.
 
-Now look at the optimized `lift0.ll` and do these exercises:
-- What IR instruction stores the result in `rax`?
-- What IR instruction reads the return address (`[rsp]`)?
+Run the Global Dead Code Elimination (`GlobalDCE`) pass to get rid of unused functions and global variables:
+
+```sh
+opt lift0-pre.ll -passes=globaldce -o lift0-opt.ll -S
+```
+
+Demangle the function names to make the IR easier to read:
+
+```sh
+bc-demangle lift0-opt.ll lift0-demangle.ll
+```
+
+Open `lift0-demangle.ll` and do the following exercises:
+- Find and read the lifted function.
+- Find the function that contains the semantics of the `ret` instruction.
+
+Look at the optimized `lift0.ll` and answer the following questions:
+- What LLVM IR instruction stores the result in `rax`?
+- What LLVM IR instruction reads the return address (`[rsp]`)?
 
 ## Recovering the calling convention
 
@@ -50,7 +64,8 @@ Then link the helpers and optimize:
 
 ```sh
 llvm-link lift0.ll helpers.ll -o lift0-linked.ll -S
-opt "-passes=default<O3>" lift0-linked.ll -o lift0-recovered.ll -S
+opt "-passes=inline" lift0-linked.ll -o lift0-inline.ll -S
+opt "-passes=default<O3>" lift0-inline.ll -o lift0-recovered.ll -S
 ```
 
 _Note_: You can completely customize the passes here (try the `strip` pass to clean things up). See [this Godbolt](https://godbolt.org/z/q9hPPehz3) for an example.
@@ -87,7 +102,7 @@ Now lift the function:
 remill-lift -bytes "48c1ef03488d047f480539050000c3" -address 0x1000 -arch amd64 -ir_out lift1.ll
 ```
 
-Exercise: clean up the function and reconstruct the LLVM IR
+Exercise: clean up the function and reconstruct the LLVM IR using the steps from the previous exercises.
 
 ## Recovering the calling convention
 
@@ -96,7 +111,8 @@ The custom implementation of `remill-lift` shows how you might get a similar res
 ```sh
 remill-lift -bytes "48c1ef03488d047f480539050000c3" -address 0x1000 -arch amd64 -ir_out lift1.ll -call_inputs RDI -call_output RAX
 llvm-link lift1.ll helpers.ll -o lift1-linked.ll -S
-opt "-passes=default<O3>,strip" lift1-linked.ll -o lift1-recovered.ll -S
+opt "-passes=inline" lift1-linked.ll -o lift1-inline.ll -S
+opt "-passes=default<O3>,strip" lift1-inline.ll -o lift1-recovered.ll -S
 ```
 
 **Note**: the function with the recovered calling convention is named `@call_sub_<address>`.
@@ -105,13 +121,22 @@ Exercises:
 - Compile `lift3.cpp` and reconstruct the `test3_complex_cfg` function.
 - What happens if any stack slots are used for local variables?
 
-## Recovering a function from a binary
+## Lifting a function from a binary
 
-Compile `lift3.cpp` to an ELF file:
+_Exercise_: Use `remill-lift` with `-binary lift3.elf` to lift the `test3_complex_cfg` function from the binary. You can find the address with the following command:
 
 ```sh
-clang-15 -O3 lift3.cpp -o lift3.elf
-llvm-objdump --disassemble-symbols=test3_complex_cfg lift3.elf
+llvm-objdump --disassemble-symbols=test3_complex_cfg -M intel lift3.elf
 ```
 
-_Exercise_: look at the `remill-lift.cpp` to figure out how to use the `-binary` argument and lift the function from `lift3.elf` directly.
+Compare the cleaned output to `lift3-clean.ll` for reference.
+
+## Cleaning up the `RAM` pointer
+
+The helpers use a special `RAM` pointer, which we need to clean up. Compile `lift4.cpp` to x86_64 (like `lift1.cpp`) and perform the recovery steps.
+
+Once you get `lift4-recovered.ll` you can clean up the `RAM` with this command:
+
+```sh
+ram-cleaner lift4-recovered.ll lift4-ramcleaned.ll
+```

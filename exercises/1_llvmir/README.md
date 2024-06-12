@@ -35,7 +35,7 @@ Compile `ir2.cpp` to LLVM bitcode and answer the following questions:
 
 **Questions**:
 
-1. What is the _function_ with the largest _basic block_?
+1. What is the _function_ with the largest _basic block_ (most instructions)?
 2. How many globals are in the _module_?
 3. Which _function_ has the most _basic blocks_?
 4. How many _attribute lists_ are there?

@@ -41,7 +41,7 @@ TEST_FUNCTION uint64_t test4_simple_loop(uint64_t n) {
 }
 
 TEST_FUNCTION
-uint64_t test5_simple_loop_phi(uint64_t n) {
+uint64_t test5_simple_loop(uint64_t n) {
   uint64_t x = 1;
   for (int i = 0; i < n; i++) {
     if ((i & 2) == 0) {
@@ -59,7 +59,7 @@ uint64_t test5_simple_loop_phi(uint64_t n) {
   return x;
 }
 
-TEST_FUNCTION uint64_t test6_nested_phi(uint64_t n) {
+TEST_FUNCTION uint64_t test6_nested(uint64_t n) {
   uint64_t x = 0;
   if ((n & 2) == 0) {
     if ((n >> 32) == 0) {

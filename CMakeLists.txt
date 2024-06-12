@@ -157,3 +157,55 @@ get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} D
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-tool)
 endif()
+
+# Target: bc-demangle
+set(bc-demangle_SOURCES
+	"src/bc-demangle.cpp"
+	cmake.toml
+)
+
+add_executable(bc-demangle)
+
+target_sources(bc-demangle PRIVATE ${bc-demangle_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bc-demangle_SOURCES})
+
+target_compile_features(bc-demangle PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(bc-demangle PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-demangle)
+endif()
+
+# Target: ram-cleaner
+set(ram-cleaner_SOURCES
+	"src/ram-cleaner.cpp"
+	cmake.toml
+)
+
+add_executable(ram-cleaner)
+
+target_sources(ram-cleaner PRIVATE ${ram-cleaner_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${ram-cleaner_SOURCES})
+
+target_compile_features(ram-cleaner PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(ram-cleaner PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ram-cleaner)
+endif()
