@@ -399,6 +399,36 @@ int main(int argc, char *argv[]) {
 
   // Dump the pre-optimization IR
   if (!FLAGS_ir_pre_out.empty()) {
+    auto compilerUsed = module->getGlobalVariable("llvm.compiler.used", true);
+    if (compilerUsed != nullptr) {
+      compilerUsed->eraseFromParent();
+    }
+
+    std::vector<llvm::GlobalVariable *> erase;
+    for (auto &G : module->globals()) {
+      if (G.getName().startswith("ISEL_")) {
+        erase.push_back(&G);
+      }
+    }
+    for (auto G : erase) {
+      G->eraseFromParent();
+    }
+
+    auto remillIntrinsics = module->getFunction("__remill_intrinsics");
+    if (remillIntrinsics != nullptr) {
+      remillIntrinsics->eraseFromParent();
+    }
+
+    auto hyperCall = module->getFunction("__remill_sync_hyper_call");
+    if (hyperCall != nullptr) {
+      auto name = hyperCall->getName();
+      auto ty = hyperCall->getFunctionType();
+      auto newFn = module->getOrInsertFunction(name.str() + "_", ty);
+      hyperCall->replaceAllUsesWith(newFn.getCallee());
+      hyperCall->eraseFromParent();
+      newFn.getCallee()->setName(name);
+    }
+
     if (!remill::StoreModuleIRToFile(module.get(), FLAGS_ir_pre_out, true)) {
       LOG(ERROR) << "Could not save LLVM IR to " << FLAGS_ir_pre_out;
     }

@@ -119,7 +119,7 @@ opt "-passes=default<O3>,strip" lift1-inline.ll -o lift1-recovered.ll -S
 
 Exercises:
 - Compile `lift3.cpp` and reconstruct the `test3_complex_cfg` function.
-- What happens if any stack slots are used for local variables?
+- What happens if any stack slots are used for local variables (pass `-O0` instead of `-O3` to the compiler)?
 
 ## Lifting a function from a binary
 

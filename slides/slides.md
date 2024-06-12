@@ -58,6 +58,7 @@ _Duncan Ogilvie_
 - LLVM IR (1h30m)
 - Coffee break (15m)
 - Binary lifting (1h)
+  - Time permitting
 
 ---
 
@@ -510,6 +511,15 @@ Memory *__remill_write_memory_64(Memory *m, addr_t a, uint64_t v);
 - Makes the lifted IR difficult to work with for humans (extremely verbose)
 
 <!-- During the exercises we will see how to 'massage' the IR to become more readable for us -->
+
+---
+
+# Lifting Diagram
+
+<!-- TODO: diagram of linking together multiple programs
+especially note the fact that you can link together LLVM IR with regular C/C++ code -->
+
+![bg right:70% height:80%](./lifting.svg)
 
 ---
 
