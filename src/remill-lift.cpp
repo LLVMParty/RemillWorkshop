@@ -397,38 +397,65 @@ int main(int argc, char *argv[]) {
   // `module`.
   trace_lifter.Lift(FLAGS_entry_address);
 
-  // Dump the pre-optimization IR
-  if (!FLAGS_ir_pre_out.empty()) {
-    auto compilerUsed = module->getGlobalVariable("llvm.compiler.used", true);
-    if (compilerUsed != nullptr) {
-      compilerUsed->eraseFromParent();
+  // Remove llvm.compiler.used to not preserve unused semantics
+  auto compilerUsed = module->getGlobalVariable("llvm.compiler.used", true);
+  if (compilerUsed != nullptr) {
+    compilerUsed->eraseFromParent();
+  }
+
+  // Remove ISEL_ globals that contain pointers to the semantic functions
+  std::vector<llvm::GlobalVariable *> erase;
+  for (auto &G : module->globals()) {
+    if (G.getName().startswith("ISEL_")) {
+      erase.push_back(&G);
+    }
+  }
+  for (auto G : erase) {
+    G->eraseFromParent();
+  }
+
+  // Remove function that keeps the references to unused intrinsics
+  auto remillIntrinsics = module->getFunction("__remill_intrinsics");
+  if (remillIntrinsics != nullptr) {
+    remillIntrinsics->eraseFromParent();
+  }
+
+  // Remove the implementation of the __remill_sync_hyper_call from the bitcode, because
+  // after inlining things get very confusing if this is actually called.
+  // TODO: this should probably be removed
+  auto hyperCall = module->getFunction("__remill_sync_hyper_call");
+  if (hyperCall != nullptr) {
+    auto name = hyperCall->getName();
+    auto ty = hyperCall->getFunctionType();
+    auto newFn = module->getOrInsertFunction(name.str() + "_", ty);
+    hyperCall->replaceAllUsesWith(newFn.getCallee());
+    hyperCall->eraseFromParent();
+    newFn.getCallee()->setName(name);
+  }
+
+  // A lot of intrinsic functions are (incorrectly) marked as [[gnu::const]].
+  // This causes problems where optimizer's assumptions are violated when an
+  // implementation is provided. To work around this we remove these attributes
+  // from the functions and from the call sites.
+  // Another workaround is to first do a separate inline pass and then O3.
+  for (auto &function : module->functions()) {
+    if (!function.getName().startswith("__remill_")) {
+      continue;
     }
 
-    std::vector<llvm::GlobalVariable *> erase;
-    for (auto &G : module->globals()) {
-      if (G.getName().startswith("ISEL_")) {
-        erase.push_back(&G);
+    function.removeFnAttr(llvm::Attribute::ReadNone);
+    for (auto &argument : function.args()) {
+      argument.removeAttr(llvm::Attribute::ReadNone);
+    }
+    for (auto user : function.users()) {
+      if (auto call = llvm::dyn_cast<llvm::CallInst>(user)) {
+        call->removeFnAttr(llvm::Attribute::ReadNone);
       }
     }
-    for (auto G : erase) {
-      G->eraseFromParent();
-    }
+  }
 
-    auto remillIntrinsics = module->getFunction("__remill_intrinsics");
-    if (remillIntrinsics != nullptr) {
-      remillIntrinsics->eraseFromParent();
-    }
-
-    auto hyperCall = module->getFunction("__remill_sync_hyper_call");
-    if (hyperCall != nullptr) {
-      auto name = hyperCall->getName();
-      auto ty = hyperCall->getFunctionType();
-      auto newFn = module->getOrInsertFunction(name.str() + "_", ty);
-      hyperCall->replaceAllUsesWith(newFn.getCallee());
-      hyperCall->eraseFromParent();
-      newFn.getCallee()->setName(name);
-    }
-
+  // Dump the pre-optimization IR
+  if (!FLAGS_ir_pre_out.empty()) {
     if (!remill::StoreModuleIRToFile(module.get(), FLAGS_ir_pre_out, true)) {
       LOG(ERROR) << "Could not save LLVM IR to " << FLAGS_ir_pre_out;
     }
