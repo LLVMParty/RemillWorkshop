@@ -10,7 +10,8 @@ static void ProcessModule(Module &M) {
     throw std::runtime_error("Cannot find @RAM variable!");
   }
   std::vector<Instruction *> erase;
-  for (const auto &user : RAM->users()) {
+  std::vector<User *> users(RAM->user_begin(), RAM->user_end());
+  for (const auto &user : users) {
     if (auto GEP = dyn_cast<GetElementPtrInst>(user)) {
       auto V = GEP->getOperand(2);
       IRBuilder<> ir(GEP->getParent());
@@ -23,10 +24,10 @@ static void ProcessModule(Module &M) {
       throw std::runtime_error("Unexpected @RAM usage");
     }
   }
-  RAM->eraseFromParent();
-  for (const auto &e : erase) {
+  for (auto &e : erase) {
     e->eraseFromParent();
   }
+  RAM->eraseFromParent();
   std::vector<Function *> intrinsics;
   for (Function &F : M.functions()) {
     if (F.getName().startswith("__remill_")) {
