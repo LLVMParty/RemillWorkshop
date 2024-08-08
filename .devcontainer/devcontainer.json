@@ -2,7 +2,7 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
     "name": "remill-workshop",
-    "image": "ghcr.io/llvmparty/remillworkshop:8f93b1cf",
+    "image": "ghcr.io/llvmparty/remillworkshop:20240808_b94d6786",
     // Configure tool-specific properties.
     "customizations": {
         "vscode": {
@@ -22,5 +22,5 @@
     "remoteEnv": {
         "PATH": "${containerWorkspaceFolder}/build:/cxx-common/install/bin:${containerEnv:PATH}"
     },
-    "postCreateCommand": "cmake --preset clang"
+    "postCreateCommand": "rm -rf build && cmake --preset clang"
 }

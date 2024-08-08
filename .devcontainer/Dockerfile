@@ -1,4 +1,4 @@
-FROM ghcr.io/mrexodia/cxx-common-cmake:8f93b1cf
+FROM ghcr.io/mrexodia/cxx-common-cmake:20240808_b94d6786
 
 RUN apt update \
  && apt install -y \
@@ -10,10 +10,6 @@ RUN apt update \
         gdb \
         bsdmainutils \
         binutils \
-        libstdc++-11-dev \
-        libxml2-dev \
-        ncurses-dev \
- && apt remove -y gcc gcc-11 \
  && apt autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 

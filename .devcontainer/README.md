@@ -5,6 +5,6 @@ The base image comes from: https://github.com/mrexodia/cxx-common-cmake. For the
 Build instructions:
 
 ```sh
-docker buildx build --platform linux/arm64,linux/amd64 -t ghcr.io/llvmparty/remillworkshop:8f93b1cf .
-docker push ghcr.io/llvmparty/remillworkshop:8f93b1cf
+docker buildx build --platform linux/arm64,linux/amd64 -t ghcr.io/llvmparty/remillworkshop:20240808_b94d6786 .
+docker push ghcr.io/llvmparty/remillworkshop:20240808_b94d6786
 ```

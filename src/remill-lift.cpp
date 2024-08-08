@@ -114,13 +114,11 @@ static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
     // that we don't accidentally wrap around and start filling out low
     // byte addresses.
     if (masked_addr < byte_addr) {
-      std::cerr << "Too many bytes specified to --bytes, would result "
-                << "in a 32-bit overflow.";
+      std::cerr << "Too many bytes specified to --bytes, would result " << "in a 32-bit overflow.";
       exit(EXIT_FAILURE);
 
     } else if (masked_addr < FLAGS_address) {
-      std::cerr << "Too many bytes specified to --bytes, would result "
-                << "in a 64-bit overflow.";
+      std::cerr << "Too many bytes specified to --bytes, would result " << "in a 64-bit overflow.";
       exit(EXIT_FAILURE);
     }
 
@@ -180,7 +178,7 @@ public:
       if (!isExecutableSection(addr)) {
         return false;
       }
-      std::vector<uint8_t> content = binary->get_content_from_virtual_address(addr, 1);
+      auto content = binary->get_content_from_virtual_address(addr, 1);
       if (content.empty()) {
         std::cerr << "Warning: reached end of section?" << std::endl;
         return false;
@@ -206,30 +204,30 @@ private:
   bool isExecutableSection(const uint64_t addr) const {
     auto format = binary->format();
     switch (format) {
-    case LIEF::EXE_FORMATS::FORMAT_ELF: {
+    case LIEF::Binary::ELF: {
       auto *elf = dynamic_cast<const LIEF::ELF::Binary *>(binary);
       auto *section = elf->section_from_virtual_address(addr);
       if (!section)
         return false;
-      return section->has(LIEF::ELF::ELF_SECTION_FLAGS::SHF_EXECINSTR);
+      return section->has(LIEF::ELF::Section::FLAGS::EXECINSTR);
     } break;
-    case LIEF::EXE_FORMATS::FORMAT_PE: {
+    case LIEF::Binary::PE: {
       uint64_t address = addr - binary->imagebase();
       auto *pe = dynamic_cast<const LIEF::PE::Binary *>(binary);
       auto *section = pe->section_from_rva(address);
       if (!section)
         return false;
-      return section->has_characteristic(LIEF::PE::SECTION_CHARACTERISTICS::IMAGE_SCN_MEM_EXECUTE);
+      return section->has_characteristic(LIEF::PE::Section::CHARACTERISTICS::MEM_EXECUTE);
     } break;
-    case LIEF::EXE_FORMATS::FORMAT_MACHO: {
+    case LIEF::Binary::MACHO: {
       auto *macho = dynamic_cast<const LIEF::MachO::Binary *>(binary);
       auto *section = macho->section_from_virtual_address(addr);
       if (!section)
         return false;
-      return section->has(LIEF::MachO::MACHO_SECTION_FLAGS::S_ATTR_PURE_INSTRUCTIONS);
+      return section->has(LIEF::MachO::Section::FLAGS::PURE_INSTRUCTIONS);
     } break;
     default: {
-      throw std::runtime_error("Unhandled LIEF format");
+      throw std::runtime_error("Unsupported LIEF format");
     } break;
     }
     return false;
@@ -296,13 +294,13 @@ int main(int argc, char *argv[]) {
     // Extract the OS
     if (FLAGS_os.empty()) {
       switch (binary->format()) {
-      case LIEF::FORMAT_PE:
+      case LIEF::Binary::PE:
         FLAGS_os = "windows";
         break;
-      case LIEF::FORMAT_ELF:
+      case LIEF::Binary::ELF:
         FLAGS_os = "linux";
         break;
-      case LIEF::FORMAT_MACHO:
+      case LIEF::Binary::MACHO:
         FLAGS_os = "macos";
         break;
       default:
