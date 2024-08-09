@@ -57,7 +57,7 @@ DEFINE_string(os,
   "Operating system name of the code being "
   "translated. Valid OSes: linux, macos, windows, solaris.");
 DEFINE_string(arch,
-  REMILL_ARCH,
+  "",
   "Architecture of the code being translated. "
   "Valid architectures: x86, amd64 (with or without "
   "`_avx` or `_avx512` appended), aarch64, aarch32");
@@ -114,11 +114,13 @@ static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
     // that we don't accidentally wrap around and start filling out low
     // byte addresses.
     if (masked_addr < byte_addr) {
-      std::cerr << "Too many bytes specified to --bytes, would result " << "in a 32-bit overflow.";
+      std::cerr << "Too many bytes specified to --bytes, would result "
+                << "in a 32-bit overflow.";
       exit(EXIT_FAILURE);
 
     } else if (masked_addr < FLAGS_address) {
-      std::cerr << "Too many bytes specified to --bytes, would result " << "in a 64-bit overflow.";
+      std::cerr << "Too many bytes specified to --bytes, would result "
+                << "in a 64-bit overflow.";
       exit(EXIT_FAILURE);
     }
 
@@ -343,7 +345,14 @@ int main(int argc, char *argv[]) {
     std::cerr << "Please specify a sequence of hex bytes to -bytes." << std::endl;
     return EXIT_FAILURE;
   } else if (FLAGS_bytes.size() % 2) {
-    std::cerr << "Please specify an even number of nibbles to --bytes." << std::endl;
+    std::cerr << "Please specify an even number of nibbles to -bytes." << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if (FLAGS_arch.empty()) {
+    std::cerr << "No architecture specified. Valid architectures: x86, amd64 (with or without "
+                 "`_avx` or `_avx512` appended), aarch64, aarch32"
+              << std::endl;
     return EXIT_FAILURE;
   }
 
