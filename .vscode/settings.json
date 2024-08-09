@@ -21,7 +21,8 @@
     },
     "clangd.arguments": [
         "--compile-commands-dir=${workspaceFolder}/build",
-        "-header-insertion=never"
+        "-header-insertion=never",
+        "--function-arg-placeholders=0"
     ],
     "clang-format.executable": "clang-format",
     "cmake.configureOnOpen": false,
