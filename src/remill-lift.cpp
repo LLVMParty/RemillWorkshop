@@ -518,42 +518,45 @@ int main(int argc, char *argv[]) {
     // Use the registers to build a function prototype.
     llvm::SmallVector<llvm::Type *, 8> arg_types;
     for (auto &reg_name : input_reg_names) {
-      const auto reg = arch->RegisterByName(reg_name.str());
-      CHECK(reg != nullptr) << "Invalid register name '" << reg_name.str()
-                            << "' used in input slice list '" << FLAGS_call_inputs << "'";
+      const auto input_reg = arch->RegisterByName(reg_name.str());
+      CHECK(input_reg != nullptr) << "Invalid register name '" << reg_name.str()
+                                  << "' used in input slice list '" << FLAGS_call_inputs << "'";
 
-      arg_types.push_back(reg->type);
+      arg_types.push_back(input_reg->type);
     }
 
-    // Outputs are "returned" by pointer through arguments.
-    const auto reg = arch->RegisterByName(output_reg_name);
-    CHECK(reg != nullptr) << "Invalid register name '" << output_reg_name.str() << "'";
-
-    const auto state_type = arch->StateStructType();
-    const auto func_type = llvm::FunctionType::get(reg->type, arg_types, false);
+    const auto output_reg = arch->RegisterByName(output_reg_name);
+    CHECK(output_reg != nullptr) << "Invalid register name '" << output_reg_name.str() << "'";
+    const auto func_type = llvm::FunctionType::get(output_reg->type, arg_types, false);
     const auto func = llvm::Function::Create(func_type,
       llvm::GlobalValue::ExternalLinkage,
       "call_" + entry_trace->getName(),
       &dest_module);
+
+    // Get the program counter and stack pointer registers.
+    const remill::Register *pc_reg = arch->RegisterByName(arch->ProgramCounterRegisterName());
+    const remill::Register *sp_reg = arch->RegisterByName(arch->StackPointerRegisterName());
+
+    CHECK(pc_reg != nullptr) << "Could not find the register in the state structure "
+                             << "associated with the program counter.";
+
+    CHECK(sp_reg != nullptr) << "Could not find the register in the state structure "
+                             << "associated with the stack pointer.";
 
     // Store all of the function arguments (corresponding with specific registers)
     // into the stack-allocated `State` structure.
     auto entry = llvm::BasicBlock::Create(context, "", func);
     llvm::IRBuilder<> ir(entry);
 
+    const auto state_type = arch->StateStructType();
     const auto state_ptr = ir.CreateAlloca(state_type);
 
-    const remill::Register *pc_reg = arch->RegisterByName(arch->ProgramCounterRegisterName());
-
-    CHECK(pc_reg != nullptr) << "Could not find the register in the state structure "
-                             << "associated with the program counter.";
-
     // Store the program counter into the state.
-    const auto pc_reg_ptr = pc_reg->AddressOf(state_ptr, entry);
     const auto trace_pc = llvm::ConstantInt::get(pc_reg->type, FLAGS_entry_address, false);
     ir.SetInsertPoint(entry);
-    ir.CreateStore(trace_pc, pc_reg_ptr);
+    ir.CreateStore(trace_pc, pc_reg->AddressOf(state_ptr, entry));
 
+    // Store the argument registers into the state
     auto args_it = func->arg_begin();
     for (auto &reg_name : input_reg_names) {
       const auto reg = arch->RegisterByName(reg_name.str());
@@ -565,8 +568,33 @@ int main(int argc, char *argv[]) {
       ir.CreateStore(&arg, reg_ptr);
     }
 
-    llvm::Value *mem_ptr = llvm::UndefValue::get(mem_ptr_type);
+    // Set up symbolic globals
+    auto CreateGlobalReg = [&](const remill::Register *reg, const char *globalName) {
+      const auto reg_ptr = reg->AddressOf(state_ptr, entry);
+      // Create the global variable
+      llvm::ArrayType *array_type = llvm::ArrayType::get(llvm::Type::getInt8Ty(context), 0);
+      llvm::GlobalVariable *reg_global = new llvm::GlobalVariable(dest_module,
+        array_type,
+        false,
+        llvm::GlobalValue::ExternalLinkage,
+        nullptr,
+        globalName);
+      reg_global->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
+      reg_global->setAlignment(llvm::MaybeAlign(1));
+      ir.CreateStore(reg_global, reg_ptr);
+    };
+    CreateGlobalReg(sp_reg, "STACK");
+    auto gsbase_reg = arch->RegisterByName("GSBASE");
+    if (gsbase_reg != nullptr) {
+      CreateGlobalReg(gsbase_reg, "GSBASE");
+    }
+    auto fsbase_reg = arch->RegisterByName("FSBASE");
+    if (fsbase_reg != nullptr) {
+      CreateGlobalReg(fsbase_reg, "FSBASE");
+    }
 
+    // Call the lifted function
+    llvm::Value *mem_ptr = llvm::UndefValue::get(mem_ptr_type);
     llvm::Value *trace_args[remill::kNumBlockArgs] = {};
     trace_args[remill::kStatePointerArgNum] = state_ptr;
     trace_args[remill::kMemoryPointerArgNum] = mem_ptr;
@@ -595,6 +623,7 @@ int main(int argc, char *argv[]) {
       MuteStateEscape(&dest_module, "__remill_missing_block");
     }
 
+    // Optimize the module to inline everything
     guide.slp_vectorize = true;
     guide.loop_vectorize = true;
 
