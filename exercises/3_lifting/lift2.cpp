@@ -6,3 +6,6 @@ extern "C" uint64_t test2_linear_flow(uint64_t n, uint64_t m) {
   m += 1337;
   return n + m;
 }
+
+int main() {
+}

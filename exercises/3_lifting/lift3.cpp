@@ -17,5 +17,5 @@ extern "C" __attribute__((noinline)) uint64_t test3_complex_cfg(uint64_t n, uint
 }
 
 int main() {
-  return 0; // return test3_complex_cfg(13, 37);
+  return 0;
 }

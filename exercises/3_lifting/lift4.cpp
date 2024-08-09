@@ -7,3 +7,6 @@ extern "C" uint64_t test4_memory(uint64_t n, uint64_t *m) {
   *m = n;
   return 42;
 }
+
+int main() {
+}
