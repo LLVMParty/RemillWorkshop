@@ -89,6 +89,7 @@ DEFINE_string(bc_out,
 
 DEFINE_string(call_inputs, "", "Comma-separated list of registers to treat as inputs.");
 DEFINE_string(call_output, "", "Return register.");
+DEFINE_bool(mute_state_escape, false, "Mute state escape");
 
 using Memory = std::map<uint64_t, uint8_t>;
 
@@ -581,14 +582,18 @@ int main(int argc, char *argv[]) {
     auto out_reg_ptr = out_reg->AddressOf(state_ptr, entry);
     ir.CreateRet(ir.CreateLoad(out_reg->type, out_reg_ptr));
 
-    // We want the stack-allocated `State` to be subject to scalarization
-    // and mem2reg, but to "encourage" that, we need to prevent the
-    // `alloca`d `State` from escaping.
-    MuteStateEscape(&dest_module, "__remill_error");
-    MuteStateEscape(&dest_module, "__remill_function_call");
-    MuteStateEscape(&dest_module, "__remill_function_return");
-    MuteStateEscape(&dest_module, "__remill_jump");
-    MuteStateEscape(&dest_module, "__remill_missing_block");
+    // NOTE: Doing this prevents the helpers implementation from working properly,
+    // which is this is disabled per default.
+    if (FLAGS_mute_state_escape) {
+      // We want the stack-allocated `State` to be subject to scalarization
+      // and mem2reg, but to "encourage" that, we need to prevent the
+      // `alloca`d `State` from escaping.
+      MuteStateEscape(&dest_module, "__remill_error");
+      MuteStateEscape(&dest_module, "__remill_function_call");
+      MuteStateEscape(&dest_module, "__remill_function_return");
+      MuteStateEscape(&dest_module, "__remill_jump");
+      MuteStateEscape(&dest_module, "__remill_missing_block");
+    }
 
     guide.slp_vectorize = true;
     guide.loop_vectorize = true;
