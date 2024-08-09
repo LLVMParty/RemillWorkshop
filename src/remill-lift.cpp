@@ -90,6 +90,7 @@ DEFINE_string(bc_out,
 DEFINE_string(call_inputs, "", "Comma-separated list of registers to treat as inputs.");
 DEFINE_string(call_output, "", "Return register.");
 DEFINE_bool(mute_state_escape, false, "Mute state escape");
+DEFINE_bool(symbolic_gpregs, false, "Set general purpose registers to a symbolic value");
 
 using Memory = std::map<uint64_t, uint8_t>;
 
@@ -551,6 +552,29 @@ int main(int argc, char *argv[]) {
     const auto state_type = arch->StateStructType();
     const auto state_ptr = ir.CreateAlloca(state_type);
 
+    auto CreateSymbolicReg = [&](const remill::Register *reg, const llvm::Twine &symbol_name) {
+      const auto reg_ptr = reg->AddressOf(state_ptr, entry);
+      llvm::ArrayType *array_type = llvm::ArrayType::get(llvm::Type::getInt8Ty(context), 0);
+      llvm::GlobalVariable *reg_global = new llvm::GlobalVariable(dest_module,
+        array_type,
+        false,
+        llvm::GlobalValue::ExternalLinkage,
+        nullptr,
+        symbol_name);
+      reg_global->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
+      reg_global->setAlignment(llvm::MaybeAlign(1));
+      ir.CreateStore(reg_global, reg_ptr);
+    };
+
+    // Store symbolic values into general purpose registers
+    if (FLAGS_symbolic_gpregs) {
+      arch->ForEachRegister([&](const remill::Register *reg) {
+        if (reg->size == pc_reg->size) {
+          CreateSymbolicReg(reg, "symbolic_" + reg->name);
+        }
+      });
+    }
+
     // Store the program counter into the state.
     const auto trace_pc = llvm::ConstantInt::get(pc_reg->type, FLAGS_entry_address, false);
     ir.SetInsertPoint(entry);
@@ -561,7 +585,7 @@ int main(int argc, char *argv[]) {
     for (auto &reg_name : input_reg_names) {
       const auto reg = arch->RegisterByName(reg_name.str());
       auto &arg = *args_it++;
-      arg.setName(reg_name);
+      arg.setName("arg_" + reg_name);
       CHECK_EQ(arg.getType(), reg->type);
       auto reg_ptr = reg->AddressOf(state_ptr, entry);
       ir.SetInsertPoint(entry);
@@ -569,28 +593,14 @@ int main(int argc, char *argv[]) {
     }
 
     // Set up symbolic globals
-    auto CreateGlobalReg = [&](const remill::Register *reg, const char *globalName) {
-      const auto reg_ptr = reg->AddressOf(state_ptr, entry);
-      // Create the global variable
-      llvm::ArrayType *array_type = llvm::ArrayType::get(llvm::Type::getInt8Ty(context), 0);
-      llvm::GlobalVariable *reg_global = new llvm::GlobalVariable(dest_module,
-        array_type,
-        false,
-        llvm::GlobalValue::ExternalLinkage,
-        nullptr,
-        globalName);
-      reg_global->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
-      reg_global->setAlignment(llvm::MaybeAlign(1));
-      ir.CreateStore(reg_global, reg_ptr);
-    };
-    CreateGlobalReg(sp_reg, "STACK");
+    CreateSymbolicReg(sp_reg, "STACK");
     auto gsbase_reg = arch->RegisterByName("GSBASE");
     if (gsbase_reg != nullptr) {
-      CreateGlobalReg(gsbase_reg, "GSBASE");
+      CreateSymbolicReg(gsbase_reg, "GSBASE");
     }
     auto fsbase_reg = arch->RegisterByName("FSBASE");
     if (fsbase_reg != nullptr) {
-      CreateGlobalReg(fsbase_reg, "FSBASE");
+      CreateSymbolicReg(fsbase_reg, "FSBASE");
     }
 
     // Call the lifted function
