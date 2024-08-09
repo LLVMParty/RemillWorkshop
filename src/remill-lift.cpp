@@ -71,7 +71,7 @@ DEFINE_uint64(entry_address,
   -1,
   "Address of instruction that should be "
   "considered the entrypoint of this code. "
-  "Defaults to the value of --address.");
+  "Defaults to the value of -address.");
 
 DEFINE_string(bytes, "", "Hex-encoded byte string to lift.");
 
@@ -93,7 +93,7 @@ DEFINE_bool(mute_state_escape, false, "Mute state escape");
 
 using Memory = std::map<uint64_t, uint8_t>;
 
-// Unhexlify the data passed to `--bytes`, and fill in `memory` with each
+// Unhexlify the data passed to `-bytes`, and fill in `memory` with each
 // such byte.
 static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
   Memory memory;
@@ -104,23 +104,23 @@ static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
     auto byte_val = strtol(nibbles, &parsed_to, 16);
 
     if (parsed_to != &(nibbles[2])) {
-      std::cerr << "Invalid hex byte value '" << nibbles << "' specified in --bytes." << std::endl;
+      std::cerr << "Invalid hex byte value '" << nibbles << "' specified in -bytes." << std::endl;
       exit(EXIT_FAILURE);
     }
 
     auto byte_addr = FLAGS_address + (i / 2);
     auto masked_addr = byte_addr & addr_mask;
 
-    // Make sure that if a really big number is specified for `--address`,
+    // Make sure that if a really big number is specified for `-address`,
     // that we don't accidentally wrap around and start filling out low
     // byte addresses.
     if (masked_addr < byte_addr) {
-      std::cerr << "Too many bytes specified to --bytes, would result "
+      std::cerr << "Too many bytes specified to -bytes, would result "
                 << "in a 32-bit overflow.";
       exit(EXIT_FAILURE);
 
     } else if (masked_addr < FLAGS_address) {
-      std::cerr << "Too many bytes specified to --bytes, would result "
+      std::cerr << "Too many bytes specified to -bytes, would result "
                 << "in a 64-bit overflow.";
       exit(EXIT_FAILURE);
     }
@@ -365,7 +365,7 @@ int main(int argc, char *argv[]) {
     FLAGS_entry_address = FLAGS_address;
   }
 
-  // Make sure `--address` and `--entry_address` are in-bounds for the target
+  // Make sure `-address` and `-entry_address` are in-bounds for the target
   // architecture's address size.
   llvm::LLVMContext context;
   auto arch = remill::Arch::Get(context,
@@ -374,15 +374,15 @@ int main(int argc, char *argv[]) {
   const uint64_t addr_mask = ~0ULL >> (64UL - arch->address_size);
   if (FLAGS_address != (FLAGS_address & addr_mask)) {
     std::cerr << "Value " << std::hex << FLAGS_address
-              << " passed to --address does not fit into 32-bits. Did mean"
-              << " to specify a 64-bit architecture to --arch?" << std::endl;
+              << " passed to -address does not fit into 32-bits. Did mean"
+              << " to specify a 64-bit architecture to -arch?" << std::endl;
     return EXIT_FAILURE;
   }
 
   if (FLAGS_entry_address != (FLAGS_entry_address & addr_mask)) {
     std::cerr << "Value " << std::hex << FLAGS_entry_address
-              << " passed to --entry_address does not fit into 32-bits. Did mean"
-              << " to specify a 64-bit architecture to --arch?" << std::endl;
+              << " passed to -entry_address does not fit into 32-bits. Did mean"
+              << " to specify a 64-bit architecture to -arch?" << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -401,7 +401,7 @@ int main(int argc, char *argv[]) {
 
   remill::TraceLifter trace_lifter(arch.get(), manager);
 
-  // Lift all discoverable traces starting from `--entry_address` into
+  // Lift all discoverable traces starting from `-entry_address` into
   // `module`.
   trace_lifter.Lift(FLAGS_entry_address);
 
@@ -446,6 +446,7 @@ int main(int argc, char *argv[]) {
   // implementation is provided. To work around this we remove these attributes
   // from the functions and from the call sites.
   // Another workaround is to first do a separate inline pass and then O3.
+  // NOTE: This was fixed in https://github.com/lifting-bits/remill/commit/7f091d42
   for (auto &function : module->functions()) {
     if (!function.getName().startswith("__remill_")) {
       continue;
@@ -512,11 +513,10 @@ int main(int argc, char *argv[]) {
     llvm::StringRef(FLAGS_call_inputs).split(input_reg_names, ',', -1, false /* KeepEmpty */);
 
     CHECK(!(input_reg_names.empty() && output_reg_name.empty()))
-      << "Empty lists passed to both --call_inputs and --call_output";
+      << "Empty lists passed to both -call_inputs and -call_output";
 
     // Use the registers to build a function prototype.
     llvm::SmallVector<llvm::Type *, 8> arg_types;
-
     for (auto &reg_name : input_reg_names) {
       const auto reg = arch->RegisterByName(reg_name.str());
       CHECK(reg != nullptr) << "Invalid register name '" << reg_name.str()
