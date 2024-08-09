@@ -45,6 +45,10 @@ sources = ["src/bc-tool.cpp"]
 type = "llvm-tool"
 sources = ["src/bc-demangle.cpp"]
 
+[target.bc-annotate]
+type = "llvm-tool"
+sources = ["src/bc-annotate.cpp"]
+
 [target.ram-cleaner]
 type = "llvm-tool"
 sources = ["src/ram-cleaner.cpp"]

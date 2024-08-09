@@ -184,6 +184,32 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-demangle)
 endif()
 
+# Target: bc-annotate
+set(bc-annotate_SOURCES
+	"src/bc-annotate.cpp"
+	cmake.toml
+)
+
+add_executable(bc-annotate)
+
+target_sources(bc-annotate PRIVATE ${bc-annotate_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${bc-annotate_SOURCES})
+
+target_compile_features(bc-annotate PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(bc-annotate PRIVATE
+	LLVM-Wrapper
+	remill
+	remill_settings
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT bc-annotate)
+endif()
+
 # Target: ram-cleaner
 set(ram-cleaner_SOURCES
 	"src/ram-cleaner.cpp"
