@@ -1,0 +1,8 @@
+https://mcyoung.xyz/2023/08/01/llvm-ir/
+https://sh4dy.com/2024/06/29/learning_llvm_01/
+https://sh4dy.com/2024/07/06/learning_llvm_02/
+https://elmanto.github.io/posts/llvm_for_security_1_4
+https://elmanto.github.io/posts/llvm_for_security_2_4
+https://elmanto.github.io/posts/llvm_for_security_3_4
+https://elmanto.github.io/posts/llvm_for_security_4_4
+https://sungsoo.github.io/2016/04/24/introduction-to-llvm.html
