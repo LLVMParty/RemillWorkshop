@@ -10,6 +10,9 @@ RUN apt update \
         gdb \
         bsdmainutils \
         binutils \
+        curl \
+        wget \
+        sudo \
  && apt autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
