@@ -11,10 +11,12 @@
     "editor.formatOnSave": false,
     "C_Cpp.intelliSenseEngine": "disabled",
     "[cpp]": {
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
     },
     "[c]": {
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
     },
     "[json]": {
         "editor.formatOnSave": true
