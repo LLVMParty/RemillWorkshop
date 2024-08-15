@@ -2,7 +2,6 @@
 
 #include <cstdlib>
 #include <memory>
-#include <filesystem>
 
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/FormattedStream.h>

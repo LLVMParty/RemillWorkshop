@@ -134,7 +134,7 @@ private:
 int main(int argc, char **argv) {
   // Parse arguments
   if (argc < 2) {
-    printf("Usage: %s in.bc [out.ll]\n", std::filesystem::path(argv[0]).filename().c_str());
+    printf("Usage: %s in.bc [out.ll]\n", argv[0]);
     return EXIT_FAILURE;
   }
   auto inFile = argv[1];

@@ -116,13 +116,11 @@ static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
     // that we don't accidentally wrap around and start filling out low
     // byte addresses.
     if (masked_addr < byte_addr) {
-      std::cerr << "Too many bytes specified to -bytes, would result "
-                << "in a 32-bit overflow.";
+      std::cerr << "Too many bytes specified to -bytes, would result " << "in a 32-bit overflow.";
       exit(EXIT_FAILURE);
 
     } else if (masked_addr < FLAGS_address) {
-      std::cerr << "Too many bytes specified to -bytes, would result "
-                << "in a 64-bit overflow.";
+      std::cerr << "Too many bytes specified to -bytes, would result " << "in a 64-bit overflow.";
       exit(EXIT_FAILURE);
     }
 
