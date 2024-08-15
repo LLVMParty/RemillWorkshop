@@ -42,5 +42,11 @@ int main(int argc, char **argv) {
     SaveModule(M.get(), outFile);
   }
 
+  outs() << "Verifying module...\n";
+  if (verifyModule(*M, &outs())) {
+    outs() << "Module verification failed!\n";
+    return EXIT_FAILURE;
+  }
+
   return EXIT_SUCCESS;
 }
