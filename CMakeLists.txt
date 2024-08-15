@@ -50,32 +50,6 @@ endif()
 add_subdirectory(helpers)
 set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
 
-# Target: hello
-set(hello_SOURCES
-	"src/hello.cpp"
-	cmake.toml
-)
-
-add_executable(hello)
-
-target_sources(hello PRIVATE ${hello_SOURCES})
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${hello_SOURCES})
-
-target_compile_features(hello PRIVATE
-	cxx_std_20
-)
-
-target_link_libraries(hello PRIVATE
-	LLVM-Wrapper
-	remill
-	remill_settings
-)
-
-get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
-if(NOT CMKR_VS_STARTUP_PROJECT)
-	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT hello)
-endif()
-
 # Target: remill-lift
 set(remill-lift_SOURCES
 	"src/remill-lift.cpp"

@@ -78,9 +78,15 @@ Expected output:
 The `${workspaceFolder}/build` directory will also be added to your `PATH`, so you can easily access your tools from anywhere. To verify, run the follow command:
 
 ```sh
-hello
+remill-lift --version
 ```
 
 Expected output:
 
-> `remill version: e72a100`
+```
+remill-lift version v4.1.0-160-g7f091d4
+Commit Hash: 7f091d4256060c254fcd15f35fd8b9bd6abd157f
+Commit Date: 2024-07-17 12:32:00 -0400
+Last commit by: Duncan Ogilvie [mr.exodia.tpodt@gmail.com]
+Commit Subject: [Remove [[gnu::const]] (readnone) from __remill intrinsics (#710)]
+```
