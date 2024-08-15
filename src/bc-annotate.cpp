@@ -5,40 +5,6 @@
 
 using namespace llvm;
 
-static const char *ConstantExprClassName(const ConstantExpr *expr) {
-#define HANDLE_INST(num, opcode, Class) {num, "ConstantExpr(" #opcode ")"},
-  static std::map<unsigned, const char *> names = {
-#include "llvm/IR/Instruction.def"
-  };
-  auto itr = names.find(expr->getOpcode());
-  return itr == names.end() ? "<unknown>" : itr->second;
-}
-
-static const char *InstructionClassName(const Instruction *instr) {
-#define HANDLE_INST(num, opcode, Class) {num, #Class "(" #opcode ")"},
-  static std::map<unsigned, const char *> names = {
-#include "llvm/IR/Instruction.def"
-  };
-  auto itr = names.find(instr->getOpcode());
-  return itr == names.end() ? "<unknown>" : itr->second;
-}
-
-static const char *ValueClassName(const Value *value) {
-  auto id = value->getValueID();
-  if (auto instr = dyn_cast<Instruction>(value)) {
-    return InstructionClassName(instr);
-  }
-  if (auto expr = dyn_cast<ConstantExpr>(value)) {
-    return ConstantExprClassName(expr);
-  }
-#define HANDLE_VALUE(Name) {Value::Name##Val, #Name},
-  static std::map<unsigned, const char *> names = {
-#include "llvm/IR/Value.def"
-  };
-  auto itr = names.find(id);
-  return itr == names.end() ? "<unknown>" : itr->second;
-}
-
 struct MyAnnotationWriter : AssemblyAnnotationWriter {
   void printConstantExprOps(const ConstantExpr *expr, formatted_raw_ostream &OS, int depth) {
     auto numOperands = expr->getNumOperands();

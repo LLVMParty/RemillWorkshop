@@ -4,6 +4,10 @@
 
 using namespace llvm;
 
+static void fatal(const std::string &message) {
+  throw std::runtime_error(message);
+}
+
 static void ProcessModule(Module &M) {
   auto RAM = M.getGlobalVariable("RAM");
   if (RAM == nullptr) {
@@ -63,6 +67,13 @@ int main(int argc, char **argv) {
   // Save module
   if (outFile != nullptr) {
     SaveModule(M.get(), outFile);
+  }
+
+  // Verify module
+  outs() << "Verifying module...\n";
+  if (verifyModule(*M, &outs())) {
+    outs() << "Module verification failed!\n";
+    return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;

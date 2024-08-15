@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <memory>
+#include <unordered_map>
 
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/FormattedStream.h>
@@ -11,6 +12,7 @@
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/Verifier.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 
 inline std::unique_ptr<llvm::Module> LoadModule(llvm::LLVMContext &Context,
@@ -45,4 +47,38 @@ inline void SaveModule(llvm::Module *Module, const std::string &Filename) {
     llvm::errs().flush();
     std::exit(EXIT_FAILURE);
   }
+}
+
+inline const char *ConstantExprClassName(const llvm::ConstantExpr *expr) {
+#define HANDLE_INST(num, opcode, Class) {num, "ConstantExpr(" #opcode ")"},
+  static std::unordered_map<unsigned, const char *> names = {
+#include "llvm/IR/Instruction.def"
+  };
+  auto itr = names.find(expr->getOpcode());
+  return itr == names.end() ? "<unknown>" : itr->second;
+}
+
+inline const char *InstructionClassName(const llvm::Instruction *instr) {
+#define HANDLE_INST(num, opcode, Class) {num, #Class "(" #opcode ")"},
+  static std::unordered_map<unsigned, const char *> names = {
+#include "llvm/IR/Instruction.def"
+  };
+  auto itr = names.find(instr->getOpcode());
+  return itr == names.end() ? "<unknown>" : itr->second;
+}
+
+inline const char *ValueClassName(const llvm::Value *value) {
+  auto id = value->getValueID();
+  if (auto instr = dyn_cast<llvm::Instruction>(value)) {
+    return InstructionClassName(instr);
+  }
+  if (auto expr = dyn_cast<llvm::ConstantExpr>(value)) {
+    return ConstantExprClassName(expr);
+  }
+#define HANDLE_VALUE(Name) {llvm::Value::Name##Val, #Name},
+  static std::unordered_map<unsigned, const char *> names = {
+#include "llvm/IR/Value.def"
+  };
+  auto itr = names.find(id);
+  return itr == names.end() ? "<unknown>" : itr->second;
 }
