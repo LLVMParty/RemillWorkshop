@@ -16,6 +16,7 @@
 
 #include <gflags/gflags.h>
 #include <glog/logging.h>
+#include <llvm/ADT/StringExtras.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
@@ -129,23 +130,50 @@ static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
   return memory;
 }
 
-class SimpleTraceManager : public remill::TraceManager {
-public:
+struct SimpleTraceManager : remill::TraceManager {
+  const remill::Arch *arch = nullptr;
+  llvm::Module *module = nullptr;
   Memory &memory;
   LIEF::Binary *binary = nullptr;
+  uint64_t entry = 0;
   std::unordered_map<uint64_t, llvm::Function *> traces;
 
-  virtual ~SimpleTraceManager(void) = default;
-
-  explicit SimpleTraceManager(Memory &memory_, LIEF::Binary *binary_)
-    : memory(memory_)
-    , binary(binary_) {
+  SimpleTraceManager(const remill::Arch *arch,
+    llvm::Module *module,
+    Memory &memory,
+    LIEF::Binary *binary,
+    uint64_t entry)
+    : arch(arch)
+    , module(module)
+    , memory(memory)
+    , binary(binary)
+    , entry(entry) {
   }
 
   // Called when we have lifted, i.e. defined the contents, of a new trace.
   // The derived class is expected to do something useful with this.
   void SetLiftedTraceDefinition(uint64_t addr, llvm::Function *lifted_func) override {
     traces[addr] = lifted_func;
+  }
+
+  // Get a definition for a lifted trace.
+  //
+  // NOTE: This is permitted to return a function from an arbitrary module.
+  llvm::Function *GetLiftedTraceDefinition(uint64_t addr) override {
+
+    // The entry function needs to be lifted by the TraceLifter
+    if (addr == entry) {
+      return nullptr;
+    }
+
+    // The get_trace_decl in TraceLifter creates a declaration for us.
+    // Instead of providing an implementation, we keep it extern.
+    auto name = TraceName(addr);
+    auto fn = module->getFunction(name);
+    if (fn == nullptr) {
+      fn = arch->DeclareLiftedFunction(name, module);
+    }
+    return fn;
   }
 
   // Get a declaration for a lifted trace. The idea here is that a derived
@@ -156,19 +184,7 @@ public:
   //
   // NOTE: This is permitted to return a function from an arbitrary module.
   llvm::Function *GetLiftedTraceDeclaration(uint64_t addr) override {
-    auto trace_it = traces.find(addr);
-    if (trace_it != traces.end()) {
-      return trace_it->second;
-    } else {
-      return nullptr;
-    }
-  }
-
-  // Get a definition for a lifted trace.
-  //
-  // NOTE: This is permitted to return a function from an arbitrary module.
-  llvm::Function *GetLiftedTraceDefinition(uint64_t addr) override {
-    return GetLiftedTraceDeclaration(addr);
+    return remill::TraceManager::GetLiftedTraceDeclaration(addr);
   }
 
   // Try to read an executable byte of memory. Returns `true` of the byte
@@ -388,7 +404,7 @@ int main(int argc, char *argv[]) {
 
   const auto mem_ptr_type = arch->MemoryPointerType();
   Memory memory = UnhexlifyInputBytes(addr_mask);
-  SimpleTraceManager manager(memory, binary.get());
+  SimpleTraceManager manager(arch.get(), module.get(), memory, binary.get(), FLAGS_entry_address);
   if (!manager.TryReadExecutableByte(FLAGS_entry_address, nullptr)) {
     std::cerr << "No executable code at address 0x" << std::hex << FLAGS_entry_address << std::endl;
     return EXIT_FAILURE;
