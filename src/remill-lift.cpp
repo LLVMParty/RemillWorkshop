@@ -87,8 +87,7 @@ DEFINE_string(bc_out,
   "Path to file where the LLVM bitcode should be "
   "saved.");
 
-DEFINE_string(call_inputs, "", "Comma-separated list of registers to treat as inputs.");
-DEFINE_string(call_output, "", "Return register.");
+DEFINE_string(signature, "", "Function signature reg_out(reg_in,...)");
 DEFINE_bool(mute_state_escape, false, "Mute state escape");
 DEFINE_bool(symbolic_gpregs, false, "Set general purpose registers to a symbolic value");
 
@@ -481,7 +480,6 @@ int main(int argc, char *argv[]) {
   arch->PrepareModuleDataLayout(&dest_module);
 
   llvm::Function *entry_trace = nullptr;
-  const auto make_slice = !FLAGS_call_inputs.empty() || !FLAGS_call_output.empty();
 
   // Move the lifted code into a new module. This module will be much smaller
   // because it won't be bogged down with all of the semantics definitions.
@@ -495,7 +493,7 @@ int main(int argc, char *argv[]) {
 
     // If we are providing a prototype, then we'll be re-optimizing the new
     // module, and we want everything to get inlined.
-    if (make_slice) {
+    if (!FLAGS_signature.empty()) {
       lifted_entry.second->setLinkage(llvm::GlobalValue::InternalLinkage);
       lifted_entry.second->removeFnAttr(llvm::Attribute::NoInline);
       lifted_entry.second->addFnAttr(llvm::Attribute::InlineHint);
@@ -504,29 +502,55 @@ int main(int argc, char *argv[]) {
   }
 
   // We have a prototype, so go create a function that will call our entrypoint.
-  if (make_slice) {
+  if (!FLAGS_signature.empty()) {
     CHECK_NOTNULL(entry_trace);
 
-    llvm::SmallVector<llvm::StringRef, 4> input_reg_names;
-    llvm::StringRef output_reg_name = FLAGS_call_output;
-    llvm::StringRef(FLAGS_call_inputs).split(input_reg_names, ',', -1, false /* KeepEmpty */);
+    std::string signature;
+    for (auto ch : FLAGS_signature) {
+      if (ch != ' ') {
+        signature.push_back(ch);
+      }
+    }
+    auto paren_idx = signature.find('(');
+    CHECK(paren_idx != std::string::npos && signature.back() == ')')
+      << "Invalid function signature";
 
-    CHECK(!(input_reg_names.empty() && output_reg_name.empty()))
-      << "Empty lists passed to both -call_inputs and -call_output";
+    auto output_reg_name = signature.substr(0, paren_idx);
+    if (output_reg_name == "void") {
+      output_reg_name.clear();
+    }
+    std::vector<std::string> input_reg_names;
+    std::string temp;
+    for (size_t i = paren_idx + 1; i < signature.size() - 1; i++) {
+      auto ch = signature[i];
+      if (ch == ',') {
+        input_reg_names.push_back(temp);
+        temp.clear();
+      } else {
+        temp.push_back(ch);
+      }
+    }
+    if (!temp.empty()) {
+      input_reg_names.push_back(temp);
+    }
 
     // Use the registers to build a function prototype.
     llvm::SmallVector<llvm::Type *, 8> arg_types;
     for (auto &reg_name : input_reg_names) {
-      const auto input_reg = arch->RegisterByName(reg_name.str());
-      CHECK(input_reg != nullptr) << "Invalid register name '" << reg_name.str()
-                                  << "' used in input slice list '" << FLAGS_call_inputs << "'";
+      const auto input_reg = arch->RegisterByName(reg_name);
+      CHECK(input_reg != nullptr) << "Invalid register name '" << reg_name
+                                  << "' used in signature '" << FLAGS_signature << "'";
 
       arg_types.push_back(input_reg->type);
     }
 
-    const auto output_reg = arch->RegisterByName(output_reg_name);
-    CHECK(output_reg != nullptr) << "Invalid register name '" << output_reg_name.str() << "'";
-    const auto func_type = llvm::FunctionType::get(output_reg->type, arg_types, false);
+    auto return_type = llvm::Type::getVoidTy(context);
+    if (!output_reg_name.empty()) {
+      const auto output_reg = arch->RegisterByName(output_reg_name);
+      CHECK(output_reg != nullptr) << "Invalid register name '" << output_reg_name << "'";
+      return_type = output_reg->type;
+    }
+    const auto func_type = llvm::FunctionType::get(return_type, arg_types, false);
     const auto func = llvm::Function::Create(func_type,
       llvm::GlobalValue::ExternalLinkage,
       "call_" + entry_trace->getName(),
@@ -581,7 +605,7 @@ int main(int argc, char *argv[]) {
     // Store the argument registers into the state
     auto args_it = func->arg_begin();
     for (auto &reg_name : input_reg_names) {
-      const auto reg = arch->RegisterByName(reg_name.str());
+      const auto reg = arch->RegisterByName(reg_name);
       auto &arg = *args_it++;
       arg.setName("arg_" + reg_name);
       CHECK_EQ(arg.getType(), reg->type);
@@ -614,9 +638,13 @@ int main(int argc, char *argv[]) {
     mem_ptr = ir.CreateCall(entry_trace, trace_args);
 
     // Read and return the output register
-    const auto out_reg = arch->RegisterByName(output_reg_name);
-    auto out_reg_ptr = out_reg->AddressOf(state_ptr, entry);
-    ir.CreateRet(ir.CreateLoad(out_reg->type, out_reg_ptr));
+    if (!output_reg_name.empty()) {
+      const auto out_reg = arch->RegisterByName(output_reg_name);
+      auto out_reg_ptr = out_reg->AddressOf(state_ptr, entry);
+      ir.CreateRet(ir.CreateLoad(out_reg->type, out_reg_ptr));
+    } else {
+      ir.CreateRetVoid();
+    }
 
     // NOTE: Doing this prevents the helpers implementation from working properly,
     // which is this is disabled per default.
