@@ -521,6 +521,9 @@ int main(int argc, char *argv[]) {
   if (!FLAGS_signature.empty()) {
     CHECK_NOTNULL(entry_trace);
 
+    // Set the entry trace as internal so it can be removed during optimizations
+    entry_trace->setLinkage(llvm::Function::InternalLinkage);
+
     std::string signature;
     for (auto ch : FLAGS_signature) {
       if (ch != ' ') {
