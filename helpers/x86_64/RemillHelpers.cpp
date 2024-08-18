@@ -142,13 +142,8 @@ HELPER uint64_t __remill_undefined_64() {
   return 0;
 }
 
-// Calling conventions (workshop-specific)
+// Hack for DIV
 
-extern "C" Memory *sub_1000(State &state, Reg curr_pc, Memory *memory);
-
-HELPER uint64_t call1(uint64_t rdi) {
-  State state = {};
-  state.gpr.rdi.qword = rdi;
-  sub_1000(state, state.gpr.rip, nullptr);
-  return state.gpr.rax.qword;
+HELPER Memory *__remill_error(State *, addr_t, Memory *) {
+  __builtin_unreachable();
 }
