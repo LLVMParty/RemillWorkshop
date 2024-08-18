@@ -8,7 +8,8 @@
 
 #include "remill/Arch/X86/Runtime/State.h"
 
-#define HELPER extern "C" __attribute__((always_inline))
+// NOTE: We disable tail calls because it can cause the DSEPass to make false assumptions
+#define HELPER extern "C" __attribute__((always_inline)) __attribute__((disable_tail_calls))
 
 // Memory layout (0 length arrays treated as a simple pointer to unknown memory)
 

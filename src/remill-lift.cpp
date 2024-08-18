@@ -116,11 +116,11 @@ static Memory UnhexlifyInputBytes(uint64_t addr_mask) {
     // that we don't accidentally wrap around and start filling out low
     // byte addresses.
     if (masked_addr < byte_addr) {
-      std::cerr << "Too many bytes specified to -bytes, would result " << "in a 32-bit overflow.";
+      std::cerr << "Too many bytes specified to -bytes, would result in a 32-bit overflow.";
       exit(EXIT_FAILURE);
 
     } else if (masked_addr < FLAGS_address) {
-      std::cerr << "Too many bytes specified to -bytes, would result " << "in a 64-bit overflow.";
+      std::cerr << "Too many bytes specified to -bytes, would result in a 64-bit overflow.";
       exit(EXIT_FAILURE);
     }
 
@@ -574,6 +574,9 @@ int main(int argc, char *argv[]) {
       llvm::GlobalValue::ExternalLinkage,
       "call_" + entry_trace->getName(),
       &dest_module);
+
+    // HACK: This is a workaround for the issue with the DSEPass making false assumptions
+    func->addFnAttr("disable-tail-calls", "true");
 
     // Get the program counter and stack pointer registers.
     const remill::Register *pc_reg = arch->RegisterByName(arch->ProgramCounterRegisterName());
