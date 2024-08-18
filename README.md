@@ -18,7 +18,11 @@ This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) 
 | ![](.devcontainer/new-codespace.png) | ![](.devcontainer/machine-type.png) |
 |---|---|
 
-**Note**: Remember to shut down your codespace [here](https://github.com/codespaces) when you're finished.
+#### **Remember to shut down your codespace [here](https://github.com/codespaces) when you're finished.**
+
+I recommend switching to the `GitHub Dark` theme, because the LLVM IR syntax highlighting works better there. When prompted by the CMake tools, just close the notifications:
+
+![](.devcontainer/cmake-notifications.png)
 
 <sub>_Alternatively you can set things up locally with Docker Desktop_ (**not recommended**):</sub>
 <details>

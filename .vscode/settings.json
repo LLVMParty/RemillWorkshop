@@ -26,11 +26,11 @@
         "-header-insertion=never",
         "--function-arg-placeholders=0"
     ],
-    "clang-format.executable": "clang-format",
     "cmake.configureOnOpen": false,
     "cmake.useCMakePresets": "always",
-    "cmake.showOptionsMovedNotification": false,
     "cmake.options.statusBarVisibility": "hidden",
+    "cmake.skipConfigureIfCachePresent": false,
+    "cmake.showOptionsMovedNotification": false, // https://github.com/microsoft/vscode-cmake-tools/issues/3423#issuecomment-2002011868
     "cmake.options.advanced": {
         "build": {
             "statusBarVisibility": "visible"

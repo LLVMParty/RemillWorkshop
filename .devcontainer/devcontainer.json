@@ -8,14 +8,19 @@
         "vscode": {
             "extensions": [
                 "llvm-vs-code-extensions.vscode-clangd",
+                "sunshaoce.llvmir",
                 "twxs.cmake",
                 "ms-vscode.cmake-tools",
-                "RReverser.llvm",
                 "EditorConfig.EditorConfig",
                 "tamasfe.even-better-toml",
                 "ms-vscode.cpptools",
                 "tintinweb.graphviz-interactive-preview",
                 "esbenp.prettier-vscode"
+            ]
+        },
+        "codespaces": {
+            "openFiles": [
+                "src/bc-tool.cpp"
             ]
         }
     },
