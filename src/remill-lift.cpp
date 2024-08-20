@@ -90,7 +90,7 @@ DEFINE_string(bc_out,
 
 DEFINE_string(signature, "", "Function signature reg_out(reg_in,...)");
 DEFINE_bool(mute_state_escape, false, "Mute state escape");
-DEFINE_bool(symbolic_gpregs, false, "Set general purpose registers to a symbolic value");
+DEFINE_bool(symbolic_regs, false, "Set registers to a symbolic value");
 
 using Memory = std::map<uint64_t, uint8_t>;
 
@@ -596,25 +596,27 @@ int main(int argc, char *argv[]) {
     const auto state_type = arch->StateStructType();
     const auto state_ptr = ir.CreateAlloca(state_type);
 
-    auto CreateSymbolicReg = [&](const remill::Register *reg, const llvm::Twine &symbol_name) {
+    auto CreateSymbolicReg = [&](const remill::Register *reg, const std::string &name) {
+      std::string symbol_name = "symbolic_" + name;
+      auto symbolic_fn = dest_module.getOrInsertFunction("__remill_" + symbol_name,
+        llvm::FunctionType::get(reg->type, false));
+      auto fn = dyn_cast<llvm::Function>(symbolic_fn.getCallee());
+
+      // Allow the optimizer to delete calls if the result is not used
+      fn->setDoesNotAccessMemory();
+      fn->setDoesNotThrow();
+      fn->addFnAttr(llvm::Attribute::WillReturn);
+
+      auto call = ir.CreateCall(symbolic_fn, {}, symbol_name);
       const auto reg_ptr = reg->AddressOf(state_ptr, entry);
-      llvm::ArrayType *array_type = llvm::ArrayType::get(llvm::Type::getInt8Ty(context), 0);
-      llvm::GlobalVariable *reg_global = new llvm::GlobalVariable(dest_module,
-        array_type,
-        false,
-        llvm::GlobalValue::ExternalLinkage,
-        nullptr,
-        symbol_name);
-      reg_global->setUnnamedAddr(llvm::GlobalValue::UnnamedAddr::Local);
-      reg_global->setAlignment(llvm::MaybeAlign(1));
-      ir.CreateStore(reg_global, reg_ptr);
+      ir.CreateStore(call, reg_ptr);
     };
 
     // Store symbolic values into general purpose registers
-    if (FLAGS_symbolic_gpregs) {
+    if (FLAGS_symbolic_regs) {
       arch->ForEachRegister([&](const remill::Register *reg) {
-        if (reg->size == pc_reg->size) {
-          CreateSymbolicReg(reg, "symbolic_" + reg->name);
+        if (reg->parent == nullptr) {
+          CreateSymbolicReg(reg, reg->name);
         }
       });
     }
