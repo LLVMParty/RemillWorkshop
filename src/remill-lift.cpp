@@ -294,6 +294,61 @@ static void SetVersion(void) {
   google::SetVersionString(ss.str());
 }
 
+struct Argument {
+  bool is_memory = false;
+  size_t size = 0;
+  std::string reg;
+  int64_t offset = 0;
+
+  static int64_t parse_hex(const std::string &argument) {
+    int64_t hex_value = 0;
+    std::istringstream iss(argument);
+    iss >> std::hex >> hex_value;
+    return hex_value;
+  }
+
+  static Argument parse(const std::string &argument) {
+    Argument out;
+    auto mem_idx = argument.find('[');
+    if (mem_idx != std::string::npos) {
+      out.is_memory = true;
+      if (mem_idx > 0) {
+        out.size = parse_hex(argument.substr(0, mem_idx));
+      } else {
+        out.size = 0;
+      }
+      auto sign_idx = argument.find_first_of("+-");
+      if (sign_idx == std::string::npos) {
+        out.reg = argument.substr(mem_idx + 1, argument.size() - mem_idx - 2);
+        out.offset = 0;
+      } else {
+        out.reg = argument.substr(mem_idx + 1, sign_idx - mem_idx - 1);
+        out.offset = parse_hex(argument.substr(sign_idx, argument.size() - sign_idx - 1));
+      }
+    } else {
+      out.reg = argument;
+    }
+    for (auto &ch : out.reg) {
+      if (ch >= 'a' && ch <= 'z') {
+        ch -= 'a' - 'A';
+      }
+    }
+    return out;
+  }
+
+  void dump() {
+    if (is_memory) {
+      if (offset < 0) {
+        printf("%zu:['%s'%ld]\n", size, reg.c_str(), offset);
+      } else {
+        printf("%zu:['%s'+%ld]\n", size, reg.c_str(), offset);
+      }
+    } else {
+      printf("%s\n", reg.c_str());
+    }
+  }
+};
+
 int main(int argc, char *argv[]) {
   SetVersion();
   google::ParseCommandLineFlags(&argc, &argv, true);
@@ -526,6 +581,9 @@ int main(int argc, char *argv[]) {
 
     std::string signature;
     for (auto ch : FLAGS_signature) {
+      if (ch >= 'a' && ch <= 'z') {
+        ch -= 'a' - 'A';
+      }
       if (ch != ' ') {
         signature.push_back(ch);
       }
@@ -538,29 +596,33 @@ int main(int argc, char *argv[]) {
     if (output_reg_name == "void") {
       output_reg_name.clear();
     }
-    std::vector<std::string> input_reg_names;
+    std::vector<Argument> input_args;
     std::string temp;
     for (size_t i = paren_idx + 1; i < signature.size() - 1; i++) {
       auto ch = signature[i];
       if (ch == ',') {
-        input_reg_names.push_back(temp);
+        input_args.push_back(Argument::parse(temp));
         temp.clear();
       } else {
         temp.push_back(ch);
       }
     }
     if (!temp.empty()) {
-      input_reg_names.push_back(temp);
+      input_args.push_back(Argument::parse(temp));
     }
 
     // Use the registers to build a function prototype.
     llvm::SmallVector<llvm::Type *, 8> arg_types;
-    for (auto &reg_name : input_reg_names) {
-      const auto input_reg = arch->RegisterByName(reg_name);
-      CHECK(input_reg != nullptr) << "Invalid register name '" << reg_name
-                                  << "' used in signature '" << FLAGS_signature << "'";
+    for (auto &arg : input_args) {
+      const auto input_reg = arch->RegisterByName(arg.reg);
+      CHECK(input_reg != nullptr) << "Invalid register name '" << arg.reg << "' used in signature '"
+                                  << FLAGS_signature << "'";
 
-      arg_types.push_back(input_reg->type);
+      if (arg.size == 0) {
+        arg.size = input_reg->size;
+      }
+      auto arg_type = llvm::Type::getIntNTy(context, arg.size * 8);
+      arg_types.push_back(arg_type);
     }
 
     auto return_type = llvm::Type::getVoidTy(context);
@@ -626,18 +688,6 @@ int main(int argc, char *argv[]) {
     ir.SetInsertPoint(entry);
     ir.CreateStore(trace_pc, pc_reg->AddressOf(state_ptr, entry));
 
-    // Store the argument registers into the state
-    auto args_it = func->arg_begin();
-    for (auto &reg_name : input_reg_names) {
-      const auto reg = arch->RegisterByName(reg_name);
-      auto &arg = *args_it++;
-      arg.setName("arg_" + reg_name);
-      CHECK_EQ(arg.getType(), reg->type);
-      auto reg_ptr = reg->AddressOf(state_ptr, entry);
-      ir.SetInsertPoint(entry);
-      ir.CreateStore(&arg, reg_ptr);
-    }
-
     // Set up symbolic globals
     CreateSymbolicReg(sp_reg, "STACK");
     auto gsbase_reg = arch->RegisterByName("GSBASE");
@@ -649,8 +699,33 @@ int main(int argc, char *argv[]) {
       CreateSymbolicReg(fsbase_reg, "FSBASE");
     }
 
-    // Call the lifted function
     llvm::Value *mem_ptr = llvm::UndefValue::get(mem_ptr_type);
+
+    // Store the argument registers into the state
+    auto args_it = func->arg_begin();
+    for (auto &input_arg : input_args) {
+      const auto reg = arch->RegisterByName(input_arg.reg);
+      auto reg_ptr = reg->AddressOf(state_ptr, entry);
+      auto &arg = *args_it++;
+
+      ir.SetInsertPoint(entry);
+      if (input_arg.is_memory) {
+        arg.setName("arg_mem_" + input_arg.reg + "_" + llvm::utohexstr(input_arg.offset));
+        auto helper_name = "__remill_write_memory_" + std::to_string(input_arg.size * 8);
+        auto orig_memory_helper = module->getFunction(helper_name);
+        CHECK(orig_memory_helper != nullptr) << "Could not find memory helper for " << helper_name;
+        auto memory_helper = dest_module.getOrInsertFunction(helper_name,
+          orig_memory_helper->getFunctionType());
+        auto reg_value = ir.CreateLoad(reg->type, reg_ptr);
+        auto arg_ptr = ir.CreateAdd(reg_value, llvm::ConstantInt::get(reg->type, input_arg.offset));
+        ir.CreateCall(memory_helper, {mem_ptr, arg_ptr, &arg});
+      } else {
+        arg.setName("arg_" + input_arg.reg);
+        ir.CreateStore(&arg, reg_ptr);
+      }
+    }
+
+    // Call the lifted function
     llvm::Value *trace_args[remill::kNumBlockArgs] = {};
     trace_args[remill::kStatePointerArgNum] = state_ptr;
     trace_args[remill::kMemoryPointerArgNum] = mem_ptr;
