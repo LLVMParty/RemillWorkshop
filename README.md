@@ -2,9 +2,11 @@
 
 ## Setting up the environment
 
-This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) file to allow you to quickly get started. Below are two methods of setting up the environment. **Using Codespaces is recommended**.
+This repository uses a [`devcontainer.json`](./.devcontainer/devcontainer.json) file to allow you to quickly get started.
 
-### 1) GitHub Codespaces (easy)
+## 1) GitHub Codespaces
+
+**Using Codespaces is required for the workshop**
 
 1. Login to your GitHub account
 2. [Fork this repository](https://github.com/LLVMParty/RemillWorkshop/fork)
@@ -24,8 +26,8 @@ I recommend switching to the `GitHub Dark` theme, because the LLVM IR syntax hig
 
 ![](.devcontainer/cmake-notifications.png)
 
-<sub>_Alternatively you can set things up locally with Docker Desktop_ (**not recommended**):</sub>
 <details>
+<summary><sub>At a later date you can set things up locally with Docker Desktop</sub></summary>
 
 ### Docker Desktop (tricky)
 
@@ -79,7 +81,7 @@ Expected output:
 
 > `/cxx-common/install`
 
-The `${workspaceFolder}/build` directory will also be added to your `PATH`, so you can easily access your tools from anywhere. To verify, run the follow command:
+The `${workspaceFolder}/build` directory will also be added to your `PATH`, so you can easily access your tools from anywhere. To verify, run the following command:
 
 ```sh
 remill-lift --version
