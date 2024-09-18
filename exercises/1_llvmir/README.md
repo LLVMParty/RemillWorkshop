@@ -46,6 +46,12 @@ Compile `ir2.cpp` to LLVM bitcode and answer the following questions:
 
 **Note**: Remember to keep the reference documentation handy: https://llvm.org/docs/LangRef.html
 
+To change the optimization level, add the flag to the command line:
+
+```sh
+clang -c -O1 ir2.cpp -emit-llvm -S -fno-discard-value-names -g0 -o ir2-O1.ll
+```
+
 ### Exercise 1c
 
 Open the following link: https://godbolt.org/z/83EKPPh49.

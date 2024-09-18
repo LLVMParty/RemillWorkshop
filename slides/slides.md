@@ -29,7 +29,7 @@ _Duncan Ogilvie_
 4. Press `...` and then `New with options...`
 5. Change `Machine type` to `4-core`
 6. Then `Create codespace`
-7. Wait a ~3 minutes while the image is loading ☕
+7. Wait ~3 minutes while the image is loading ☕
    - Press `Show log` to see progress
 
 ---
@@ -37,8 +37,7 @@ _Duncan Ogilvie_
 # Introduction
 
 - Meant for absolute (LLVM) beginners
-  - **C(++) programming experience absolutely required!**
-  - Additionally you need basic reverse engineering knowledge
+  - Basic familiarity with C and assembly useful
 - Format: hands-on workshop
 - Interactive
 - Available for on-site training: [`training@ogilvie.pl`](mailto:training@ogilvie.pl)
@@ -50,15 +49,6 @@ _Duncan Ogilvie_
 - Creator of [x64dbg](https://x64dbg.com)
 - Worked in DRM for 5 years
 - Currently working in mobile security R&D
-
----
-
-# Outline
-
-- LLVM IR (1h30m)
-- Coffee break (15m)
-- Binary lifting (1h)
-  - Time permitting
 
 ---
 
@@ -249,6 +239,16 @@ uint32_t cfg(uint32_t x) {
     : 321
 }
 ```
+
+---
+
+# LLVM IR: Optimizations
+
+- Compilers emit non-optimal LLVM IR
+  - Often easier to write a compiler this way
+- LLVM IR was designed to be suitable for optimizations
+- The compiler has a pipeline of _optimization passes_
+  - Every pass has its' own purpose
 
 ---
 
